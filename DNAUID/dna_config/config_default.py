@@ -75,4 +75,26 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         ["all"],
         options=["all", "狩月庭攻略组", "猫冬"],
     ),
+    "DNAUrlProxyUrl": GsStrConfig(
+        "二重螺旋API代理地址",
+        "二重螺旋API代理地址",
+        "",
+    ),
+    "LocalProxyUrl": GsStrConfig(
+        "本地代理地址",
+        "本地代理地址",
+        "",
+    ),
+    "NeedProxyFunc": GsListStrConfig(
+        "需要代理的函数",
+        "需要代理的函数",
+        [],
+        options=["all", "get_sms_code", "login"],
+    ),
+    "NoNeedProxyFunc": GsListStrConfig(
+        "不需要代理的函数",
+        "这个优先级会更高",
+        [],
+        options=[],
+    ),
 }

@@ -1,6 +1,7 @@
 import json
 import random
 import asyncio
+import inspect
 from typing import Any, Dict, List, Union, Literal, Mapping, Optional
 from urllib.parse import urlencode
 
@@ -29,6 +30,9 @@ from .api import (
     GET_POST_DETAIL_URL,
     GET_TASK_PROCESS_URL,
     GET_RSA_PUBLIC_KEY_URL,
+    get_local_proxy_url,
+    get_need_proxy_func,
+    get_no_need_proxy_func,
 )
 from .sign import rsa_encrypt, get_dev_code, build_signature
 from ..utils import timed_async_cache
@@ -337,6 +341,15 @@ class DNAApi:
         if header is None:
             header = await get_base_header()
 
+        proxy_func = get_need_proxy_func()
+        if inspect.stack()[1].function in proxy_func or "all" in proxy_func:
+            proxy_url = get_local_proxy_url()
+        else:
+            proxy_url = None
+
+        if proxy_url and inspect.stack()[1].function in get_no_need_proxy_func():
+            proxy_url = None
+
         for attempt in range(max_retries):
             try:
                 async with aiohttp.ClientSession() as session:
@@ -348,6 +361,7 @@ class DNAApi:
                         json=json_data,
                         data=data,
                         timeout=aiohttp.ClientTimeout(total=10),
+                        proxy=proxy_url,
                     ) as response:
                         try:
                             raw_res = await response.json()

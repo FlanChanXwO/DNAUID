@@ -1,5 +1,8 @@
 def get_main_url():
-    return "https://dnabbs-api.yingxiong.com"
+    from ...dna_config.dna_config import DNAConfig
+
+    DNAUrlProxyUrl = DNAConfig.get_config("DNAUrlProxyUrl").data
+    return DNAUrlProxyUrl or "https://dnabbs-api.yingxiong.com"
 
 
 MAIN_URL = get_main_url()
@@ -39,3 +42,30 @@ ANN_LIST_URL = f"{MAIN_URL}/user/mine"
 
 # calendar
 CALENDAR_LIST_URL = f"{MAIN_URL}/forum/wiki/home/page/list"
+
+
+def get_local_proxy_url():
+    from ...dna_config.dna_config import DNAConfig
+
+    LocalProxyUrl = DNAConfig.get_config("LocalProxyUrl").data
+    if LocalProxyUrl:
+        return LocalProxyUrl
+    return None
+
+
+def get_need_proxy_func():
+    from ...dna_config.dna_config import DNAConfig
+
+    NeedProxyFunc = DNAConfig.get_config("NeedProxyFunc").data
+    if NeedProxyFunc:
+        return NeedProxyFunc
+    return []
+
+
+def get_no_need_proxy_func():
+    from ...dna_config.dna_config import DNAConfig
+
+    NoNeedProxyFunc = DNAConfig.get_config("NoNeedProxyFunc").data
+    if NoNeedProxyFunc:
+        return NoNeedProxyFunc
+    return []
