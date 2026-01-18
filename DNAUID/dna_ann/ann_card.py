@@ -107,6 +107,8 @@ async def ann_detail_card(post_id: Union[int, str], is_check_time=False) -> Unio
     for index, temp in enumerate(post_content):
         content_type = temp["contentType"]
         if content_type == 1:
+            if not temp["content"]:
+                continue
             # 文案
             content = temp["content"]
             (
