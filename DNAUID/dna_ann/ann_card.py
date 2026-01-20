@@ -26,10 +26,12 @@ async def ann_batch_card(post_content: List, drow_height: float) -> bytes:
             content = temp["content"]
             drow_duanluo, _, drow_line_height, _ = split_text(content)
             for duanluo, line_count in drow_duanluo:
-                draw.text((x, y), duanluo, fill=(0, 0, 0), font=unicode_font_26)
-                y += drow_line_height * line_count + 30
-        elif temp["contentType"] == 2 and "url" in temp and temp["url"].endswith(("jpg", "png", "jpeg")):
-            # img = await get_pic(temp["url"], (temp["imgWidth"], temp["imgHeight"]))
+                if duanluo.strip():
+                    draw.text((x, y), duanluo, fill=(0, 0, 0), font=unicode_font_26)
+                    y += drow_line_height * line_count + 30
+        elif (
+            temp["contentType"] == 2 and "url" in temp and temp["url"].lower().endswith(("jpg", "png", "jpeg", "webp"))
+        ):
             img = await download_pic_from_url(ANN_CARD_PATH, temp["url"])
             img_x = 0
             if img.width > im.width:
@@ -43,7 +45,7 @@ async def ann_batch_card(post_content: List, drow_height: float) -> bytes:
             temp["contentType"] == 5
             and "contentVideo" in temp
             and "coverUrl" in temp["contentVideo"]
-            and temp["contentVideo"]["coverUrl"].endswith(("jpg", "png", "jpeg"))
+            and temp["contentVideo"]["coverUrl"].lower().endswith(("jpg", "png", "jpeg", "webp"))
         ):
             try:
                 video_temp = temp["contentVideo"]
@@ -107,8 +109,6 @@ async def ann_detail_card(post_id: Union[int, str], is_check_time=False) -> Unio
     for index, temp in enumerate(post_content):
         content_type = temp["contentType"]
         if content_type == 1:
-            if not temp["content"]:
-                continue
             # 文案
             content = temp["content"]
             (
@@ -117,8 +117,9 @@ async def ann_detail_card(post_id: Union[int, str], is_check_time=False) -> Unio
                 x_drow_line_height,
                 x_drow_height,
             ) = split_text(content)
-            drow_height += x_drow_height + 30
-        elif content_type == 2 and "url" in temp and temp["url"].endswith(("jpg", "png", "jpeg")):
+            if content.strip():
+                drow_height += x_drow_height + 30
+        elif content_type == 2 and "url" in temp and temp["url"].lower().endswith(("jpg", "png", "jpeg", "webp")):
             # 图片
             img = await download_pic_from_url(ANN_CARD_PATH, temp["url"])
             img_height = img.size[1]
@@ -130,7 +131,7 @@ async def ann_detail_card(post_id: Union[int, str], is_check_time=False) -> Unio
             content_type == 5
             and "contentVideo" in temp
             and "coverUrl" in temp["contentVideo"]
-            and temp["contentVideo"]["coverUrl"].endswith(("jpg", "png", "jpeg"))
+            and temp["contentVideo"]["coverUrl"].lower().endswith(("jpg", "png", "jpeg", "webp", "webp"))
         ):
             try:
                 # 视频图片
@@ -153,7 +154,7 @@ async def ann_detail_card(post_id: Union[int, str], is_check_time=False) -> Unio
             imgs.append(img)
 
     else:
-        if drow_height and index_end > index_start:
+        if drow_height > 0 and index_end > index_start:
             img = await ann_batch_card(post_content[index_start:index_end], drow_height)
             imgs.append(img)
 
