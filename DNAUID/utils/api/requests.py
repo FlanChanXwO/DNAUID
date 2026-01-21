@@ -73,10 +73,10 @@ class DNAApi:
         if dna_user.status == "无效":
             return
 
-        login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-        if not login_log.success:
-            await DNAUser.mark_cookie_invalid(uid, dna_user.cookie, "无效")
-            return
+        # login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
+        # if not login_log.success:
+        #     await DNAUser.mark_cookie_invalid(uid, dna_user.cookie, "无效")
+        #     return
 
         return dna_user
 
@@ -86,10 +86,10 @@ class DNAApi:
             return
         random.shuffle(dna_users)
         for dna_user in dna_users[:3]:
-            login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-            if not login_log.success:
-                await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
-                continue
+            # login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
+            # if not login_log.success:
+            #     await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
+            #     continue
 
             return dna_user
         return None

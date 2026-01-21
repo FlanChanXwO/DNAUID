@@ -53,9 +53,9 @@ async def sign_task(
         result_msgs.append(ss.turn_msg())
         return return_msg()
 
-    if not await ss.token_check():
-        expire_uids.append(dna_user.uid)
-        return return_msg()
+    # if not await ss.token_check():
+    #     expire_uids.append(dna_user.uid)
+    #     return return_msg()
 
     await ss.do_sign()
     await ss.do_bbs_sign()
