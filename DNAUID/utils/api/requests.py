@@ -73,10 +73,10 @@ class DNAApi:
         if dna_user.status == "无效":
             return
 
-        # login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-        # if not login_log.success:
-        #     await DNAUser.mark_cookie_invalid(uid, dna_user.cookie, "无效")
-        #     return
+        login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
+        if not login_log.success:
+            await DNAUser.mark_cookie_invalid(uid, dna_user.cookie, "无效")
+            return
 
         return dna_user
 
@@ -86,10 +86,10 @@ class DNAApi:
             return
         random.shuffle(dna_users)
         for dna_user in dna_users[:3]:
-            # login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-            # if not login_log.success:
-            #     await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
-            #     continue
+            login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
+            if not login_log.success:
+                await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
+                continue
 
             return dna_user
         return None
@@ -138,6 +138,7 @@ class DNAApi:
         )
         return await self._dna_request(LOGIN_URL, "POST", headers, data=payload)
 
+    @timed_async_cache(86400, lambda x: x and x.success)
     async def login_log(self, token: str, dev_code: Optional[str] = None):
         headers = await get_base_header(dev_code=dev_code, token=token)
         return await self._dna_request(LOGIN_LOG_URL, "POST", headers)
@@ -411,6 +412,8 @@ class DNAApi:
                         raise Exception(f"{url} 业务异常: {json.dumps(raw_res, ensure_ascii=False)}")
                     elif res.code == 200 and res.msg == "请求成功" and not res.data:
                         # 有大病
+                        if url.endswith("/user/login/log"):
+                            return res
                         raise Exception(f"{url} 请求成功，但数据为空: {json.dumps(raw_res, ensure_ascii=False)}")
 
                     return res
