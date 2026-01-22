@@ -3,7 +3,7 @@ import uuid
 import base64
 import random
 import hashlib
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Optional
 
 
 def get_dev_code() -> str:
@@ -21,6 +21,50 @@ def swap_chars(char_list, *indices):
         idx2 = indices[i]
         if idx1 < len(char_list) and idx2 < len(char_list):
             char_list[idx1], char_list[idx2] = char_list[idx2], char_list[idx1]
+
+
+def decrypt_dnum(d_num_encoded: str) -> Optional[str]:
+    if not d_num_encoded:
+        return None
+
+    try:
+        decoded_bytes = base64.b64decode(d_num_encoded)
+        decoded_str = decoded_bytes.decode("utf-8")
+
+        print(f"Base64 Decoded: {decoded_str}")
+
+        if len(decoded_str) < 27:
+            return None
+
+        part1 = decoded_str[6:12]
+        part2 = decoded_str[21:28]
+
+        timestamp_str = part1 + part2
+        return timestamp_str
+
+    except Exception:
+        return None
+
+
+def check_decrypt_dnum(d_num_encoded: str) -> int:
+    """
+    检查 dnum 是否过期
+    空值或者错误返回 -1
+    如果过期返回 0
+    如果未过期返回时间戳
+    """
+    if not d_num_encoded:
+        return -1
+    ts = decrypt_dnum(d_num_encoded)
+    if not ts:
+        return -1
+    try:
+        ts = int(ts)
+        if ts / 1000 < time.time():
+            return 0
+    except Exception:
+        return -1
+    return ts
 
 
 class SignUtils:

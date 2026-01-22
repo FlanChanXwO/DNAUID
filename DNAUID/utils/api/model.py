@@ -16,6 +16,7 @@ class DNALoginRes(BaseModel):
     signature: Optional[str] = Field(description="signature", default="")
     headUrl: Optional[str] = Field(description="headUrl", default="")
     userName: Optional[str] = Field(description="userName", default="")
+    dNum: Optional[str] = Field(description="dNum", default="")
     userId: str = Field(description="userId")
     isOfficial: int = Field(description="isOfficial", default=0)
     token: str = Field(exclude=True, description="token")

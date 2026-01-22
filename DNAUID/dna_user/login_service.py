@@ -32,12 +32,12 @@ class DNALoginService:
         if login_response.isComplete == 0:
             return complete_error_msg
 
-        return await self.dna_login_token(login_response.token, dev_code)
+        return await self.dna_login_token(login_response, dev_code)
 
-    async def dna_login_token(self, token: str, dev_code: Optional[str] = None):
+    async def dna_login_token(self, login_response: DNALoginRes, dev_code: Optional[str] = None):
         if not dev_code:
             dev_code = await self.get_dev_code()
-        role_list_response = await dna_api.get_role_list(token, dev_code)
+        role_list_response = await dna_api.get_role_list(login_response.token, dev_code)
         if not role_list_response.is_success:
             return role_list_response.throw_msg()
         if not role_list_response.data:
@@ -62,19 +62,23 @@ class DNALoginService:
                     await DNAUser.update_data_by_data(
                         select_data={"user_id": user_id, "bot_id": bot_id, "uid": uid},
                         update_data={
-                            "cookie": token,
+                            "cookie": login_response.token,
                             "status": "",
                             "dev_code": dev_code,
+                            "d_num": login_response.dNum,
+                            "refresh_token": login_response.refreshToken,
                         },
                     )
                 else:
                     await DNAUser.insert_data(
                         user_id=user_id,
                         bot_id=bot_id,
-                        cookie=token,
+                        cookie=login_response.token,
                         uid=uid,
                         status="",
                         dev_code=dev_code,
+                        d_num=login_response.dNum,
+                        refresh_token=login_response.refreshToken,
                     )
 
                 res = await DNABind.insert_uid(user_id, bot_id, uid, group_id, lenth_limit=13)

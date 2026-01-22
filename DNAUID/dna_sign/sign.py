@@ -9,6 +9,7 @@ from gsuid_core.models import Event
 from gsuid_core.segment import MessageSegment
 from gsuid_core.utils.boardcast.models import BoardCastMsg, BoardCastMsgDict
 
+from ..utils import dna_api
 from .sign_service import (
     SignService,
     can_sign,
@@ -53,7 +54,7 @@ async def sign_task(
         result_msgs.append(ss.turn_msg())
         return return_msg()
 
-    if not await ss.token_check():
+    if not await dna_api.check_cookie(dna_user):
         expire_uids.append(dna_user.uid)
         return return_msg()
 

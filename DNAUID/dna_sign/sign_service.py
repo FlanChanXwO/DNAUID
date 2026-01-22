@@ -192,10 +192,6 @@ class SignService:
 
         return False
 
-    async def token_check(self):
-        res = await dna_api.login_log(self.token, self.dev_code)
-        return res.is_success
-
     async def do_sign(self):
         if self.msg_temp["signed"]:
             return

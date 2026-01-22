@@ -8,6 +8,7 @@ from sqlalchemy.sql import or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from gsuid_core.webconsole.mount_app import PageSchema, GsAdminModel, site
+from gsuid_core.utils.database.startup import exec_list
 from gsuid_core.utils.database.base_models import (
     Bind,
     User,
@@ -16,6 +17,13 @@ from gsuid_core.utils.database.base_models import (
 )
 
 from ..utils import get_today_date
+
+exec_list.extend(
+    [
+        "ALTER TABLE DNAUser ADD COLUMN d_num TEXT DEFAULT ''",
+        "ALTER TABLE DNAUser ADD COLUMN refresh_token TEXT DEFAULT ''",
+    ]
+)
 
 T_DNABind = TypeVar("T_DNABind", bound="DNABind")
 T_DNAUser = TypeVar("T_DNAUser", bound="DNAUser")
@@ -92,6 +100,8 @@ class DNAUser(User, table=True):
     cookie: str = Field(default="", title="Cookie")
     uid: str = Field(default=None, title="二重螺旋uid")
     dev_code: str = Field(default=None, title="设备ID")
+    d_num: str = Field(default="", title="d_num")
+    refresh_token: str = Field(default="", title="refresh_token")
 
     @classmethod
     @with_session

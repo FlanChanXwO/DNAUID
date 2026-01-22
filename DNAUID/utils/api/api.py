@@ -16,6 +16,8 @@ ROLE_FOR_TOOL_URL = f"{MAIN_URL}/role/defaultRoleForTool"
 ROLE_DETAIL_URL = f"{MAIN_URL}/role/getCharDetail"
 # weapon detail
 WEAPON_DETAIL_URL = f"{MAIN_URL}/weapon/detail"
+# refresh token
+REFRESH_TOKEN_URL = f"{MAIN_URL}/user/refreshToken"
 
 # mr
 SHORT_NOTE_URL = f"{MAIN_URL}/role/getShortNoteInfo"

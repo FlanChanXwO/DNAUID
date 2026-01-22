@@ -24,6 +24,7 @@ from .api import (
     HAVE_SIGN_IN_URL,
     CALENDAR_LIST_URL,
     GET_POST_LIST_URL,
+    REFRESH_TOKEN_URL,
     ROLE_FOR_TOOL_URL,
     SIGN_CALENDAR_URL,
     GET_POST_DETAIL_URL,
@@ -33,7 +34,7 @@ from .api import (
     get_need_proxy_func,
     get_no_need_proxy_func,
 )
-from .sign import get_dev_code, get_signed_headers_and_body
+from .sign import get_dev_code, check_decrypt_dnum, get_signed_headers_and_body
 from ..utils import timed_async_cache
 from .request_util import RespCode, DNAApiResp, get_base_header
 from ..database.models import DNAUser
@@ -73,12 +74,7 @@ class DNAApi:
         if dna_user.status == "无效":
             return
 
-        login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-        if not login_log.success:
-            await DNAUser.mark_cookie_invalid(uid, dna_user.cookie, "无效")
-            return
-
-        return dna_user
+        return await self.check_cookie(dna_user)
 
     async def get_random_dna_user(self) -> Optional[DNAUser]:
         dna_users = await DNAUser.get_dna_all_user()
@@ -86,13 +82,53 @@ class DNAApi:
             return
         random.shuffle(dna_users)
         for dna_user in dna_users[:3]:
-            login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
-            if not login_log.success:
-                await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
-                continue
-
-            return dna_user
+            check_cookie = await self.check_cookie(dna_user)
+            if check_cookie:
+                return check_cookie
         return None
+
+    async def check_cookie(self, dna_user: DNAUser) -> Optional[DNAUser]:
+        if not dna_user:
+            return
+
+        if not dna_user.cookie:
+            return
+
+        if dna_user.status == "无效":
+            return
+
+        dr = check_decrypt_dnum(dna_user.d_num)
+        logger.debug(
+            f"check_cookie: uid={dna_user.uid},"
+            f" token={dna_user.cookie},"
+            f" refresh_token={dna_user.refresh_token},"
+            f" d_num={dna_user.d_num},"
+            f" dr={dr}"
+        )
+        if dr > 0:
+            return dna_user
+
+        if dr == 0 and dna_user.refresh_token:
+            res = await self.refresh_token(dna_user.cookie, dna_user.refresh_token, dna_user.dev_code)
+            if res.success and res.data and isinstance(res.data, dict):
+                dna_user.cookie = res.data["token"]
+                dna_user.d_num = res.data["dNum"]
+                await DNAUser.update_data_by_data(
+                    select_data={"user_id": dna_user.user_id, "bot_id": dna_user.bot_id, "uid": dna_user.uid},
+                    update_data={
+                        "status": "",
+                        "cookie": dna_user.cookie,
+                        "d_num": dna_user.d_num,
+                    },
+                )
+                return dna_user
+
+        login_log = await self.login_log(dna_user.cookie, dna_user.dev_code)
+        if not login_log.success:
+            await DNAUser.mark_cookie_invalid(dna_user.uid, dna_user.cookie, "无效")
+            return
+
+        return dna_user
 
     @timed_async_cache(86400, lambda x: x and len(x) > 0)
     async def get_rsa_public_key(self) -> str:
@@ -137,6 +173,18 @@ class DNAApi:
             rsa_public_key=rsa_pub,
         )
         return await self._dna_request(LOGIN_URL, "POST", headers, data=payload)
+
+    async def refresh_token(self, token: str, refresh_token: str, dev_code: str):
+        headers = await get_base_header(dev_code=dev_code, token=token)
+        payload = {"refreshToken": refresh_token}
+        rsa_pub = await self.get_rsa_public_key()
+        headers, payload = get_signed_headers_and_body(
+            url=REFRESH_TOKEN_URL,
+            header=headers,
+            data=payload,
+            rsa_public_key=rsa_pub,
+        )
+        return await self._dna_request(REFRESH_TOKEN_URL, "POST", headers, data=payload)
 
     @timed_async_cache(86400, lambda x: x and x.success)
     async def login_log(self, token: str, dev_code: Optional[str] = None):
@@ -414,7 +462,7 @@ class DNAApi:
                         raise Exception(f"{url} 业务异常: {json.dumps(raw_res, ensure_ascii=False)}")
                     elif res.code == 200 and res.msg == "请求成功" and not res.data:
                         # 有大病
-                        if url.endswith("/user/login/log"):
+                        if url.endswith("/user/login/log") or url.endswith("/user/getSmsCode"):
                             return res
                         raise Exception(f"{url} 请求成功，但数据为空: {json.dumps(raw_res, ensure_ascii=False)}")
 
