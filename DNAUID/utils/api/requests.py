@@ -231,6 +231,14 @@ class DNAApi:
 
     async def get_short_note_info(self, token: str, dev_code: str):
         headers = await get_base_header(dev_code=dev_code, token=token)
+        payload = {}
+        rsa_pub = await self.get_rsa_public_key()
+        headers, payload = get_signed_headers_and_body(
+            url=SHORT_NOTE_URL,
+            header=headers,
+            data=payload,
+            rsa_public_key=rsa_pub,
+        )
         return await self._dna_request(SHORT_NOTE_URL, "POST", headers)
 
     async def have_sign_in(self, token: str, dev_code: Optional[str] = None):
