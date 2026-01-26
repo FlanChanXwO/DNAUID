@@ -13,6 +13,12 @@ from gsuid_core.logger import logger
 from .request_util import ios_base_header
 
 
+def get_ws_continue_time() -> int:
+    from ...dna_config.dna_config import DNAConfig
+
+    return DNAConfig.get_config("WebSocketContinueTime").data or 300
+
+
 class WebSocketManager:
     """WebSocket 连接池管理器
 
@@ -22,7 +28,6 @@ class WebSocketManager:
     WS_URL = "wss://dnabbs-api.yingxiong.com:8180/ws-community-websocket"
     MAX_POOL_SIZE = 20
     HEARTBEAT_INTERVAL = 10
-    CONNECTION_TIMEOUT = 300
 
     def __init__(self):
         # _pool 存储 (ws, timestamp) 元组
@@ -68,7 +73,7 @@ class WebSocketManager:
                 # 快速过期检查
                 logger.debug(f"[DNA WebSocket] 收到消息: {message}")
                 with self._lock:
-                    if (item := self._pool.get(key)) and time.time() - item[1] > self.CONNECTION_TIMEOUT:
+                    if (item := self._pool.get(key)) and time.time() - item[1] > get_ws_continue_time():
                         try:
                             ws.close()
                         except Exception:
@@ -111,7 +116,7 @@ class WebSocketManager:
     def _is_expired(self, key: tuple[str, str]) -> bool:
         if not (item := self._pool.get(key)):
             return True
-        return time.time() - item[1] > self.CONNECTION_TIMEOUT
+        return time.time() - item[1] > get_ws_continue_time()
 
     def _cleanup_connection(self, key: tuple[str, str]):
         if item := self._pool.pop(key, None):
@@ -125,7 +130,9 @@ class WebSocketManager:
 
         with self._lock:
             # 检查连接是否存在且有效（未过期）
-            if (item := self._pool.get(key)) and time.time() - item[1] <= self.CONNECTION_TIMEOUT:
+            if (item := self._pool.get(key)) and time.time() - item[1] <= get_ws_continue_time():
+                # 续时：更新时间戳以延长连接过期时间
+                self._pool[key] = (item[0], time.time())
                 self._pool.move_to_end(key)
                 return item[0]
 
@@ -147,6 +154,18 @@ class WebSocketManager:
                 return ws
 
         return None
+
+    def get_active_tokens(self, limit: Optional[int] = 3) -> list[tuple[str, str]]:
+        with self._lock:
+            current_time = time.time()
+            active_tokens = []
+            for key, item in self._pool.items():
+                if current_time - item[1] <= get_ws_continue_time():
+                    token, dev_code = key
+                    active_tokens.append((token, dev_code))
+                    if limit is not None and len(active_tokens) >= limit:
+                        break
+            return active_tokens
 
     def close_all(self):
         with self._lock:

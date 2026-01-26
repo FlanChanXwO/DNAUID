@@ -36,6 +36,7 @@ from .api import (
 )
 from .sign import get_dev_code, check_decrypt_dnum, get_signed_headers_and_body
 from ..utils import timed_async_cache
+from .ws_manager import get_ws_manager
 from .request_util import RespCode, DNAApiResp, get_base_header
 from ..database.models import DNAUser
 from ..constants.constants import DNA_GAME_ID
@@ -77,6 +78,16 @@ class DNAApi:
         return await self.check_cookie(dna_user)
 
     async def get_random_dna_user(self) -> Optional[DNAUser]:
+        # 优先从 WebSocket 连接池获取活跃的 token
+        active_tokens = get_ws_manager().get_active_tokens()
+        if active_tokens:
+            random.shuffle(active_tokens)
+            for token, dev_code in active_tokens[:3]:
+                if dna_user := await DNAUser.select_data_by_cookie(token):
+                    if check_cookie := await self.check_cookie(dna_user):
+                        return check_cookie
+
+        # 如果 WebSocket 连接池中没有可用用户，回退到数据库查询
         dna_users = await DNAUser.get_dna_all_user()
         if not dna_users:
             return

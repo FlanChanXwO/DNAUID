@@ -97,4 +97,10 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         [],
         options=[],
     ),
+    "WebSocketContinueTime": GsIntConfig(
+        "WebSocket持续时间",
+        "保证每小时都活跃的话，可以设置>3600秒, 更改后立即生效",
+        300,
+        86400,
+    ),
 }
