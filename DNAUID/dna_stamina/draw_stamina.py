@@ -7,10 +7,12 @@ from PIL import Image, ImageDraw
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 from gsuid_core.utils.image.convert import convert_img
+from gsuid_core.utils.image.image_tools import tint_image, crop_center_img
 
 from ..utils import dna_api
 from ..utils.image import (
     COLOR_GREEN,
+    COLOR_KHAKI,
     COLOR_WHITE,
     add_footer,
     get_smooth_drawer,
@@ -26,10 +28,14 @@ from ..utils.database.models import DNABind
 from ..utils.fonts.dna_fonts import dna_font_30, dna_font_36, dna_font_40
 
 TEXT_PATH = Path(__file__).parent / "texture2d"
-bg_list = ["bg2.jpg", "bg3.jpg", "bg5.jpg"]
-
 running = Image.open(TEXT_PATH / "running.png")
 success = Image.open(TEXT_PATH / "success.png")
+
+
+def get_bg_list():
+    bg_path = TEXT_PATH / "bg"
+    bg_list = [str(path) for path in bg_path.iterdir() if path.suffix.lower() in (".jpg", ".png", ".webp")]
+    return random.choice(bg_list)
 
 
 async def draw_stamina_img(bot: Bot, ev: Event):
@@ -55,7 +61,8 @@ async def draw_stamina_img(bot: Bot, ev: Event):
         return
     role_for_tool_info = DNARoleForToolRes.model_validate(role_for_tool_info.data)
 
-    card = Image.open(TEXT_PATH / random.choice(bg_list)).convert("RGBA")
+    card = Image.open(get_bg_list()).convert("RGBA")
+    card = crop_center_img(card, 2000, 1100)
     fg = Image.open(TEXT_PATH / "fg.png")
     card.alpha_composite(fg, (0, 0))
 
@@ -95,10 +102,16 @@ async def draw_stamina_img(bot: Bot, ev: Event):
             short_note_info.hardBossRewardCount,
             short_note_info.hardBossRewardTotal,
         ),
+        (
+            "竞逐",
+            short_note_info.dungeonReward,
+            short_note_info.dungeonRewardTotal,
+        ),
     ]
 
     for index, data_temp in enumerate(data_list):
-        icon_path = Image.open(TEXT_PATH / f"icon{index + 1}.png")
+        icon_path = Image.open(TEXT_PATH / f"icon{index + 1}.png").convert("RGBA")
+        icon_path = tint_image(icon_path, COLOR_KHAKI)
 
         bar_bg_temp = bar_bg.copy()
         bar_bg_temp_draw = ImageDraw.Draw(bar_bg_temp)
@@ -150,8 +163,7 @@ async def draw_stamina_img(bot: Bot, ev: Event):
                     "rm",
                 )
 
-            # 2*2 4个 先上下两行 再左右两列
-            card.alpha_composite(draft_bg, (30 + index // 2 * 590, 840 + index % 2 * 100))
+            card.alpha_composite(draft_bg, (1400, 980 - (index + 1) * 100))
 
     card = add_footer(card, 600)
     res = await convert_img(card)

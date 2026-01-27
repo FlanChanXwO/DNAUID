@@ -81,6 +81,8 @@ class DNARoleShortNoteRes(BaseModel):
     maxDailyTaskProgress: int = Field(description="备忘手记总数")
     hardBossRewardCount: int = Field(description="梦魇进度")
     hardBossRewardTotal: int = Field(description="梦魇总数")
+    dungeonReward: int = Field(description="竞逐进度")
+    dungeonRewardTotal: int = Field(description="竞逐总数")
     draftInfo: DraftInfo = Field(description="锻造信息")
 
 
