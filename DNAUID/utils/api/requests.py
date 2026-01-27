@@ -481,7 +481,11 @@ class DNAApi:
                         raise Exception(f"{url} 业务异常: {json.dumps(raw_res, ensure_ascii=False)}")
                     elif res.code == 200 and res.msg == "请求成功" and not res.data:
                         # 有大病
-                        if url.endswith("/user/login/log") or url.endswith("/user/getSmsCode"):
+                        if (
+                            url.endswith("/user/login/log")
+                            or url.endswith("/user/getSmsCode")
+                            or url.endswith("/encourage/level/shareTask")
+                        ):
                             return res
                         raise Exception(f"{url} 请求成功，但数据为空: {json.dumps(raw_res, ensure_ascii=False)}")
 
