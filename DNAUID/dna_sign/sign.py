@@ -179,7 +179,7 @@ async def auto_sign():
         results = await asyncio.gather(*batch, return_exceptions=True)
         for result in results:
             if isinstance(result, Exception):
-                return f"{result.args[0]}"
+                logger.warning(f"[DNAUID] [自动签到] 签到失败: {result}")
 
         delay = get_sign_interval()
         logger.info(f"[DNAUID] [自动签到] 等待{delay:.2f}秒进行下一次签到")
