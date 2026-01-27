@@ -34,7 +34,12 @@ from .api import (
     get_need_proxy_func,
     get_no_need_proxy_func,
 )
-from .sign import get_dev_code, check_decrypt_dnum, get_signed_headers_and_body
+from .sign import (
+    SIGN_API_LIST,
+    get_dev_code,
+    check_decrypt_dnum,
+    get_signed_headers_and_body,
+)
 from ..utils import timed_async_cache
 from .ws_manager import get_ws_manager
 from .request_util import RespCode, DNAApiResp, get_base_header
@@ -477,16 +482,11 @@ class DNAApi:
 
                     res = DNAApiResp[Any].model_validate(raw_res)
                     if res.code == 10100 and res.msg == "业务异常":
-                        # 有病
                         raise Exception(f"{url} 业务异常: {json.dumps(raw_res, ensure_ascii=False)}")
                     elif res.code == 200 and res.msg == "请求成功" and not res.data:
-                        # 有大病
-                        if (
-                            url.endswith("/user/login/log")
-                            or url.endswith("/user/getSmsCode")
-                            or url.endswith("/encourage/level/shareTask")
-                        ):
-                            return res
+                        for api in SIGN_API_LIST:
+                            if url.endswith(api):
+                                return res
                         raise Exception(f"{url} 请求成功，但数据为空: {json.dumps(raw_res, ensure_ascii=False)}")
 
                     return res

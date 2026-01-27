@@ -5,6 +5,20 @@ import random
 import hashlib
 from typing import Any, Dict, Tuple, Optional
 
+SIGN_API_LIST = [
+    "/user/sdkLogin",
+    "/user/getSmsCode",
+    "/role/defaultRoleForTool",
+    "/encourage/signin/signin",
+    "/user/signIn",
+    "/user/refreshToken",
+    "/role/defaultRole",
+    "/role/list",
+    "/role/getShortNoteInfo",
+    "/forum/like",
+    "/encourage/calendar/Activity/list",
+]
+
 
 def get_dev_code() -> str:
     return str(uuid.uuid4()).upper()
@@ -176,20 +190,6 @@ def get_signed_headers_and_body(
     data: Dict[str, Any],
     rsa_public_key: str,
 ) -> Tuple[Dict[str, str], Dict[str, Any]]:
-    SIGN_API_LIST = [
-        "/user/sdkLogin",
-        "/user/getSmsCode",
-        "/role/defaultRoleForTool",
-        "/encourage/signin/signin",
-        "/user/signIn",
-        "/user/refreshToken",
-        "/role/defaultRole",
-        "/role/list",
-        "/role/getShortNoteInfo",
-        "/forum/like",
-        "/encourage/calendar/Activity/list",
-    ]
-
     need_sign = False
     for api in SIGN_API_LIST:
         if url.endswith(api):
