@@ -114,4 +114,9 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         "开启就显示全部，关闭只显示已拥有的角色和武器",
         True,
     ),
+    "MHSimplePicture": GsBoolConfig(
+        "是否使用简单密函图片",
+        "是否使用简单密函图片",
+        False,
+    ),
 }

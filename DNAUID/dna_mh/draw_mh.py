@@ -13,20 +13,28 @@ from gsuid_core.utils.image.convert import convert_img
 from ..utils import get_datetime
 from .cache_mh import get_mh_result
 from ..utils.image import (
+    COLOR_BLUE,
     COLOR_GREEN,
     COLOR_WHITE,
     COLOR_GOLDENROD,
     COLOR_LIGHT_GRAY,
+    COLOR_SADDLE_BROWN,
     add_footer,
 )
 from .subscribe_mh import get_mh_subscribe_list
 from ..utils.api.model import DNARoleForToolInstanceInfo
 from ..utils.api.mh_map import get_mh_type_name
 from ..utils.msgs.notify import send_dna_notify
-from ..utils.fonts.dna_fonts import dna_font_20, dna_font_36, dna_font_40
+from ..utils.fonts.dna_fonts import dna_font_20, dna_font_30, dna_font_36, dna_font_40
 
 TEXT_PATH = Path(__file__).parent / "texture2d"
 bg_list = ["bg1.jpg", "bg2.jpg", "bg3.jpg"]
+
+
+def is_simple_picture() -> bool:
+    from ..dna_config.dna_config import DNAConfig
+
+    return DNAConfig.get_config("MHSimplePicture").data
 
 
 async def draw_mh(bot: Bot, ev: Event):
@@ -42,8 +50,56 @@ async def draw_mh(bot: Bot, ev: Event):
 
     mh_list, _ = await get_mh_subscribe_list(bot, ev, ev.user_id)
 
-    card = await draw_mh_card(mh_result, remaining_seconds, mh_list)
+    if is_simple_picture():
+        card = await draw_mh_simple(mh_result, remaining_seconds, mh_list)
+    else:
+        card = await draw_mh_card(mh_result, remaining_seconds, mh_list)
     return await bot.send(card)
+
+
+async def draw_mh_simple(
+    mh_result: List[DNARoleForToolInstanceInfo],
+    remaining_seconds: int,
+    subscribe_list: Optional[List[str]] = None,
+):
+    CARD_W, GUTTER, ICON_S = 320, 20, 256
+
+    img = Image.new("RGBA", ((CARD_W + GUTTER) * len(mh_result) + GUTTER, ICON_S + 390), COLOR_WHITE)
+    draw = ImageDraw.Draw(img)
+
+    for i, mh in enumerate(mh_result):
+        if not mh.mh_type:
+            continue
+        cx, cy = GUTTER + i * (CARD_W + GUTTER) + CARD_W // 2, 50
+        if (icon_path := TEXT_PATH / f"mh_{mh.mh_type}.png").exists():
+            img.alpha_composite(Image.open(icon_path).convert("RGBA").resize((ICON_S, ICON_S)), (cx - ICON_S // 2, cy))
+
+        type_name = get_mh_type_name(mh.mh_type)
+        draw.text((cx, cy + ICON_S + 20), type_name, fill=COLOR_SADDLE_BROWN, font=dna_font_40, anchor="mt")
+        draw.line((cx - 130, cy + ICON_S + 70, cx + 130, cy + ICON_S + 70), (240, 240, 240), 2)
+
+        for j, ins in enumerate(mh.instances):
+            is_sub = subscribe_list and (ins.name in subscribe_list or f"{type_name}:{ins.name}" in subscribe_list)
+            color, weight = (COLOR_GREEN, 1) if is_sub else (COLOR_BLUE, 0)
+            draw.text((cx, cy + ICON_S + 100 + j * 50), ins.name, fill=color, font=dna_font_36, anchor="mt")
+            if weight:
+                draw.text((cx + 1, cy + ICON_S + 100 + j * 50), ins.name, fill=color, font=dna_font_36, anchor="mt")
+
+        if i < len(mh_result) - 1:
+            vx = GUTTER + (i + 1) * (CARD_W + GUTTER) - GUTTER // 2
+            draw.line((vx, 80, vx, img.height - 100), (240, 240, 240), 2)
+
+    draw.rectangle((0, img.height - 70, img.width, img.height - 10), fill=(248, 248, 248))
+    now = get_datetime()
+    time_range = f"{now.hour}:00 - {(now.hour + 1) % 24}:00"
+    draw.text(
+        (img.width // 2, img.height - 30),
+        f"当前轮换: {time_range}   {format_seconds(remaining_seconds)}后刷新",
+        fill=(50, 50, 50),
+        font=dna_font_30,
+        anchor="mm",
+    )
+    return await convert_img(img)
 
 
 async def draw_mh_card(
