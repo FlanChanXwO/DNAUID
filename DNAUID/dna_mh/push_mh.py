@@ -105,8 +105,15 @@ async def push_text_notify(mh_result: List[DNARoleForToolInstanceInfo]):
 
         if subscribe.extra_data:
             start_time, end_time = subscribe.extra_data.split(":")
-            if datetime_now.hour < int(start_time) or datetime_now.hour > int(end_time):
-                continue
+            start_hour = int(start_time)
+            end_hour = int(end_time)
+
+            if start_hour <= end_hour:
+                if datetime_now.hour < start_hour or datetime_now.hour > end_hour:
+                    continue
+            else:
+                if datetime_now.hour < start_hour and datetime_now.hour > end_hour:
+                    continue
 
         my_mh_list = str2list(subscribe.extra_message)
         valid_mh_list = []

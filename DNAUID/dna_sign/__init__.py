@@ -77,10 +77,6 @@ async def dna_sign_recheck_all(bot: Bot, ev: Event):
 
 @sv_dna_sign_all.on_regex(("^(订阅|取消订阅)签到结果$"))
 async def dna_sign_result(bot: Bot, ev: Event):
-    if ev.bot_id != "onebot":
-        logger.debug(f"非onebot禁止订阅签到结果 【{ev.bot_id}】")
-        return
-
     if "取消" in ev.raw_text:
         option = "关闭"
     else:

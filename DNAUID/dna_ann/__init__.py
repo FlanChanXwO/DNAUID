@@ -41,10 +41,6 @@ async def ann_dna(bot: Bot, ev: Event):
 
 @sv_ann_sub.on_fullmatch("订阅公告")
 async def sub_ann_dna(bot: Bot, ev: Event):
-    if ev.bot_id != "onebot":
-        logger.debug(f"非onebot禁止订阅二重螺旋公告 【{ev.bot_id}】")
-        return
-
     if not ev.group_id:
         return await bot.send("请在群聊中订阅")
     if not DNAConfig.get_config("DNAAnnOpen").data:
@@ -69,10 +65,6 @@ async def sub_ann_dna(bot: Bot, ev: Event):
 
 @sv_ann_sub.on_fullmatch(("取消订阅公告", "取消公告", "退订公告"))
 async def unsub_ann_dna(bot: Bot, ev: Event):
-    if ev.bot_id != "onebot":
-        logger.debug(f"非onebot禁止订阅二重螺旋公告 【{ev.bot_id}】")
-        return
-
     if not ev.group_id:
         return await bot.send("请在群聊中取消订阅")
 
