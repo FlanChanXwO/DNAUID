@@ -33,6 +33,7 @@ async def send_mh_notify():
         return
 
     await push_text_notify(mh_result)
+    await push_text_all_notify(mh_result)
     await push_pic_notify(mh_result, remaining_seconds)
 
 
@@ -150,6 +151,53 @@ async def push_text_notify(mh_result: List[DNARoleForToolInstanceInfo]):
 
         await _sub.send(build_push_msg)
         await asyncio.sleep(0.5 + random.randint(1, 3))
+
+
+async def push_text_all_notify(mh_result: List[DNARoleForToolInstanceInfo]):
+    if not mh_result:
+        return
+
+    text_subscribe_data = await gs_subscribe.get_subscribe(BoardcastTypeEnum.MH_TEXT_SUBSCRIBE)
+    if not text_subscribe_data:
+        return
+
+    # 计算当前轮换时间和剩余时间
+    now = get_datetime()
+    current_hour = now.replace(minute=0, second=0, microsecond=0)
+    next_hour = current_hour + timedelta(hours=1)
+    remaining_seconds = int((next_hour - now).total_seconds())
+    minutes = remaining_seconds // 60
+    seconds = remaining_seconds % 60
+
+    # 按类型分组整理密函
+    from collections import defaultdict
+
+    mh_by_type: defaultdict[str, list[str]] = defaultdict(list)
+
+    for ins in mh_result:
+        if not ins.mh_type:
+            continue
+        mh_type_name = get_mh_type_name(ins.mh_type)
+        mh_by_type[mh_type_name] = [m.name for m in ins.instances]
+
+    # 构建格式化的文本消息
+    lines = ["【密函已刷新】"]
+
+    for type_name in ["角色", "武器", "魔之楔"]:
+        if type_name in mh_by_type:
+            lines.append(f"\n-- {type_name} --")
+            lines.extend(f"{i}.{name}" for i, name in enumerate(mh_by_type[type_name], start=1))
+
+    # 当前轮换: 16:00 - 17:00
+    # 刷新时间: 50分钟13秒后
+    lines.append(f"\n当前轮换：{current_hour.hour:02d}:00 - {next_hour.hour:02d}:00")
+    lines.append(f"刷新时间：{minutes}分{seconds}秒后")
+
+    message_text = "\n".join(lines)
+
+    for subscribe in text_subscribe_data:
+        await subscribe.send(message_text)
+        await asyncio.sleep(0.2 + random.uniform(0.1, 0.5))
 
 
 async def push_pic_notify(mh_result: List[DNARoleForToolInstanceInfo], remaining_seconds: int):

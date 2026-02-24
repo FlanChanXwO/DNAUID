@@ -10,6 +10,7 @@ from .subscribe_mh import (
     subscribe_mh,
     get_mh_subscribe,
     subscribe_mh_pic,
+    subscribe_mh_text,
     subscribe_mh_time,
 )
 from ..utils.api.mh_map import get_mh_list
@@ -21,6 +22,7 @@ sv_mh_list = SV("dna密函列表")
 sv_mh_subscribe = SV("dna密函订阅")
 sv_mh_subscribe_cycle = SV("dna密函订阅周期")
 sv_mh_pic_subscribe = SV("dna密函图片订阅", area="GROUP", pm=3)
+sv_mh_text_subscribe = SV("dna密函文本订阅", area="GROUP", pm=3)
 sv_mh_test = SV("dna密函测试", pm=0)
 
 RE_MH_LIST = "|".join(get_mh_list()) + "|全部"
@@ -89,6 +91,17 @@ async def dna_mh_push_time(bot: Bot, ev: Event):
 )
 async def sub_mh_pic_subscribe(bot: Bot, ev: Event):
     await subscribe_mh_pic(bot, ev)
+
+
+@sv_mh_text_subscribe.on_fullmatch(
+    (
+        "订阅密函文本",
+        "取消订阅密函文本",
+    ),
+    block=True,
+)
+async def sub_mh_text_subscribe(bot: Bot, ev: Event):
+    await subscribe_mh_text(bot, ev)
 
 
 @sv_mh_subscribe.on_fullmatch(

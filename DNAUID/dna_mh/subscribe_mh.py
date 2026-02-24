@@ -203,6 +203,37 @@ async def subscribe_mh_pic(
         await send_dna_notify(bot, ev, "成功订阅密函图片")
 
 
+async def subscribe_mh_text(
+    bot: Bot,
+    ev: Event,
+):
+    if "取消" in ev.raw_text:
+        data = await gs_subscribe.get_subscribe(
+            BoardcastTypeEnum.MH_TEXT_SUBSCRIBE,
+            user_id=ev.user_id,
+            bot_id=ev.bot_id,
+            user_type=ev.user_type,
+            WS_BOT_ID=ev.WS_BOT_ID,
+        )
+        if not data:
+            await send_dna_notify(bot, ev, "未曾订阅密函文本")
+            return
+
+        await gs_subscribe.delete_subscribe(
+            "session",
+            BoardcastTypeEnum.MH_TEXT_SUBSCRIBE,
+            ev,
+        )
+        await send_dna_notify(bot, ev, "成功取消订阅密函文本")
+    else:
+        await gs_subscribe.add_subscribe(
+            "session",
+            BoardcastTypeEnum.MH_TEXT_SUBSCRIBE,
+            ev,
+        )
+        await send_dna_notify(bot, ev, "成功订阅密函文本")
+
+
 async def get_mh_subscribe_list(bot: Bot, ev: Event, user_id: str) -> Tuple[List[str], str]:
     subscribe_data = await gs_subscribe.get_subscribe(
         BoardcastTypeEnum.MH_SUBSCRIBE,
