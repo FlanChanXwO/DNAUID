@@ -7,17 +7,17 @@ from pydantic import Field, BaseModel, ConfigDict, computed_field
 CONTENT_TYPE = "application/x-www-form-urlencoded; charset=utf-8"
 
 ios_base_header = {
-    "version": "1.2.0",
+    "version": "1.2.2",
     "source": "ios",
     "Content-Type": CONTENT_TYPE,
-    "User-Agent": "DoubleHelix/3 CFNetwork/3860.300.31 Darwin/25.2.0",
+    "User-Agent": "DoubleHelix/3 CFNetwork/3860.300.31 Darwin/25.3.0",
 }
 
 h5_base_header = {
     "version": "3.11.1",
     "source": "h5",
     "Content-Type": CONTENT_TYPE,
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
 }
 
 
