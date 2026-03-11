@@ -1,5 +1,6 @@
 from gsuid_core.sv import SV
 from gsuid_core.bot import Bot
+from gsuid_core.logger import logger
 from gsuid_core.models import Event
 
 from .draw_role_card import draw_role_card
@@ -14,4 +15,5 @@ dna_role_detail_card = SV("dna角色详情卡片")
 )
 async def send_role_detail_card(bot: Bot, ev: Event):
     char_name = ev.regex_dict.get("char_name", "")
+    logger.info(f"[DNA Detail] 触发命令: raw_text={ev.raw_text}, char_name={char_name}, at={ev.at}")
     await draw_role_card(bot, ev, char_name)
