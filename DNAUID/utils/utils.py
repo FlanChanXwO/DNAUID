@@ -143,8 +143,9 @@ def get_two_days_ago_date():
     return two_days_ago.strftime("%Y-%m-%d")
 
 
-def get_using_id(ev: Event) -> str:
+async def get_using_id(ev: Event) -> str:
     from ..dna_config.dna_config import DNAConfig
+    from ..utils.database.models import DNAPrivacy, DNAGroupPrivacy
 
     # 没有 @ 目标
     if not ev.at:
@@ -155,14 +156,21 @@ def get_using_id(ev: Event) -> str:
     if not allow_config or not allow_config.data:
         return ev.user_id
 
-    # 获取白名单
-    whitelist_config = DNAConfig.get_config("AllowAtQueryWhiteList")
-    white_list = whitelist_config.data if whitelist_config else None
+    # 检查群是否有强制隐私设置（优先级最高）
+    if ev.group_id:
+        group_privacy = await DNAGroupPrivacy.check_group_force_privacy(
+            ev.group_id, ev.bot_id
+        )
+        if group_privacy is not None:
+            # 群有强制设置
+            if not group_privacy:
+                # 强制全体防偷窥，不允许查询他人
+                return ev.user_id
+            # 强制全体开偷窥，允许查询
+            return ev.at
 
-    # 白名单为空/不存在 允许所有人使用 @ 查询
-    if not white_list:
-        return ev.at
-
-    # 白名单非空时仅允许白名单内的会话
-    session_id = ev.group_id or ev.user_id
-    return ev.at if session_id in white_list else ev.user_id
+    # 检查被@用户的隐私设置
+    privacy = await DNAPrivacy.get_privacy_setting(ev.at, ev.bot_id)
+    if privacy and not privacy.allow_peek:
+        return ev.user_id
+    return ev.at
