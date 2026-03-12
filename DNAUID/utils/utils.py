@@ -146,23 +146,25 @@ def get_two_days_ago_date():
 def get_using_id(ev: Event) -> str:
     from ..dna_config.dna_config import DNAConfig
 
-    # 如果没有 @ 目标，直接返回 user_id
+    # 没有 @ 目标
     if not ev.at:
         return ev.user_id
 
-    # 检查是否允许 @ 查询
-    allow_at_config = DNAConfig.get_config("AllowAtQuery")
-    if not allow_at_config or not allow_at_config.data:
+    # 功能未开启
+    allow_config = DNAConfig.get_config("AllowAtQuery")
+    if not allow_config or not allow_config.data:
         return ev.user_id
 
-    # 检查白名单
-    white_list_config = DNAConfig.get_config("AllowAtQueryWhiteList")
-    if not white_list_config or not white_list_config.data:
-        return ev.user_id
+    # 获取白名单
+    whitelist_config = DNAConfig.get_config("AllowAtQueryWhiteList")
+    white_list = whitelist_config.data if whitelist_config else None
 
-    # 检查会话是否在白名单中
-    session_id = ev.group_id or ev.user_id
-    if session_id in white_list_config.data:
+    # 白名单为空/不存在 允许所有人使用 @ 查询
+    if not white_list:
         return ev.at
 
-    return ev.user_id
+    # 白名单非空时仅允许白名单内的会话
+    session_id = ev.group_id or ev.user_id
+    return ev.at if session_id in white_list else ev.user_id
+
+
