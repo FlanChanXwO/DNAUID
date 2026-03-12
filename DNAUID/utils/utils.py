@@ -166,4 +166,3 @@ def get_using_id(ev: Event) -> str:
         return ev.at
 
     return ev.user_id
-
