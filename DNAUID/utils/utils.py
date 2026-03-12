@@ -166,5 +166,3 @@ def get_using_id(ev: Event) -> str:
     # 白名单非空时仅允许白名单内的会话
     session_id = ev.group_id or ev.user_id
     return ev.at if session_id in white_list else ev.user_id
-
-
