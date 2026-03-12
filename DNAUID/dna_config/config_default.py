@@ -124,4 +124,10 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         "开启后，可以通过@他人查询对方的角色面板等信息；关闭时，无论是否AT都只能查看自己的信息",
         True,
     ),
+    "AllowAtQueryWhiteList": GsListStrConfig(
+        "AT查询会话白名单",
+        "当白名单列表不为空时，只有指定的白名单会话才可以启用【允许AT查询他人信息】功能",
+        [],
+        options=[],
+    )
 }
