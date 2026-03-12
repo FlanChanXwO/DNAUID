@@ -43,11 +43,7 @@ async def dna_not_found(bot: Bot, ev: Event, resource_name: str, need_at: bool =
 
 async def dna_peek_blocked(bot: Bot, ev: Event, need_at: bool = True):
     """被防偷窥阻止时的提示"""
-    return await send_dna_notify(
-        bot, ev,
-        "该用户开启了防偷窥，无法查看其游戏信息~",
-        need_at
-    )
+    return await send_dna_notify(bot, ev, "该用户开启了防偷窥，无法查看其游戏信息~", need_at)
 
 
 async def dna_not_unlocked(bot: Bot, ev: Event, resource_name: str, need_at: bool = True):

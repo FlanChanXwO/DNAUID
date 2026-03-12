@@ -405,6 +405,7 @@ class DNASign(BaseIDModel, table=True):
 
 class DNAPrivacy(BaseIDModel, table=True):
     """隐私设置表：存储用户的窥屏权限设置"""
+
     __table_args__: Dict[str, Any] = {"extend_existing": True}
     user_id: str = Field(default=None, title="用户ID")
     bot_id: str = Field(default=None, title="Bot ID")
@@ -475,6 +476,7 @@ class DNAPrivacy(BaseIDModel, table=True):
 
 class DNAGroupPrivacy(BaseIDModel, table=True):
     """群组隐私设置表：存储群的全体隐私设置"""
+
     __tablename__ = "dnagroupprivacy"
     __table_args__: Dict[str, Any] = {"extend_existing": True}
     group_id: str = Field(default=None, title="群组ID", unique=True)
