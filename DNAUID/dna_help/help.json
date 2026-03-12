@@ -284,7 +284,7 @@
        {
         "name": "指定开偷窥",
         "desc": "允许会话中被艾特的玩家被其它人查看该玩家的游戏信息",
-        "eg": "开偷窥",
+        "eg": "指定开偷窥",
         "need_ck": false,
         "need_sk": false,
         "need_admin": true
@@ -292,7 +292,7 @@
       {
         "name": "指定防偷窥",
         "desc": "禁止会话中被艾特的玩家被其它人查看该玩家的游戏信息",
-        "eg": "防偷窥",
+        "eg": "指定防偷窥",
         "need_ck": false,
         "need_sk": false,
         "need_admin": true
@@ -300,7 +300,7 @@
       {
         "name": "全体开偷窥",
         "desc": "允许会话中所有玩家相互查看自己的游戏信息",
-        "eg": "开偷窥",
+        "eg": "全体开偷窥",
         "need_ck": false,
         "need_sk": false,
         "need_admin": true
@@ -308,7 +308,7 @@
       {
         "name": "全体防偷窥",
         "desc": "禁止会话中所有玩家相互查看自己的游戏信息",
-        "eg": "防偷窥",
+        "eg": "全体防偷窥",
         "need_ck": false,
         "need_sk": false,
         "need_admin": true
@@ -316,7 +316,7 @@
         {
         "name": "取消全体偷窥",
         "desc": "取消全体偷窥设置，恢复个人设置",
-        "eg": "防偷窥",
+        "eg": "取消全体偷窥",
         "need_ck": false,
         "need_sk": false,
         "need_admin": true
