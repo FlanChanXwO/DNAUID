@@ -16,4 +16,4 @@ async def send_help_img(bot: Bot, ev: Event):
     await bot.send_option(await get_help(ev.user_pm))
 
 
-register_help("DNAUID", f"{DNA_PREFIX}帮助", Image.open(ICON))
+register_help("DNAUID", f"{DNA_PREFIX}帮助", Image.open(ICON).convert("RGBA"))
