@@ -430,6 +430,7 @@ class DNAPrivacy(BaseIDModel, table=True):
         return data[0] if data else None
 
     @classmethod
+    @with_lock
     @with_session
     async def set_privacy_setting(
         cls: Type[T_DNAPrivacy],
@@ -468,7 +469,7 @@ class DNAPrivacy(BaseIDModel, table=True):
         """获取一组用户的隐私设置"""
         sql = select(cls).where(
             cls.bot_id == bot_id,
-            col(cls.user_id).in_(user_ids),
+            cls.user_id.in_(user_ids),
         )
         result = await session.execute(sql)
         return list(result.scalars().all())
@@ -477,7 +478,7 @@ class DNAPrivacy(BaseIDModel, table=True):
 class DNAGroupPrivacy(BaseIDModel, table=True):
     """群组隐私设置表：存储群的全体隐私设置"""
 
-    __tablename__ = "dnagroupprivacy"
+    __tablename__ = "dna_group_privacy"
     __table_args__: Dict[str, Any] = {"extend_existing": True}
     group_id: str = Field(default=None, title="群组ID", unique=True)
     bot_id: str = Field(default=None, title="Bot ID")
@@ -501,6 +502,7 @@ class DNAGroupPrivacy(BaseIDModel, table=True):
         return data[0] if data else None
 
     @classmethod
+    @with_lock
     @with_session
     async def set_group_force_privacy(
         cls: Type[T_DNAGroupPrivacy],
