@@ -1,6 +1,8 @@
+import re
 import time
 import asyncio
 import functools
+from typing import Optional
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from collections import OrderedDict
@@ -172,3 +174,56 @@ async def get_using_id(ev: Event) -> str:
     if privacy and not privacy.allow_peek:
         return ev.user_id
     return ev.at
+
+
+async def is_uid_hidden(user_id: str, bot_id: str, group_id: Optional[str] = None) -> bool:
+    """检查指定用户的 UID 是否应该被隐藏
+
+    优先级：
+    1. 群级强制设置（如果存在）
+    2. 用户个人设置
+
+    Args:
+        user_id: 用户ID
+        bot_id: Bot ID
+        group_id: 群组ID（可选）
+
+    Returns:
+        bool: True 表示 UID 应该被隐藏，False 表示可以显示
+    """
+    from ..utils.database.models import DNAPrivacy, DNAGroupPrivacy
+
+    # 优先检查群级强制设置
+    if group_id:
+        group_force_hidden = await DNAGroupPrivacy.check_uid_hidden(group_id, bot_id)
+        if group_force_hidden is not None:
+            return group_force_hidden
+
+    # 检查用户个人设置
+    return await DNAPrivacy.is_uid_hidden(user_id, bot_id)
+
+
+# 预编译UID脱敏正则表达式
+_UID_MASK_PATTERNS = [
+    (re.compile(r"UID:\s*\[?\d+\]?", re.IGNORECASE), "UID: ***"),
+    (re.compile(r"二重螺旋uid:\s*\d+", re.IGNORECASE), "二重螺旋uid: ***"),
+]
+
+
+def mask_uid_in_text(text: str) -> str:
+    """对文本中的UID进行脱敏处理
+
+    匹配模式：
+    - UID: [数字] 或 UID:[数字]
+    - uid: [数字] 或 uid:[数字]
+    - 二重螺旋uid: [数字]
+
+    Args:
+        text: 原始文本
+
+    Returns:
+        str: 脱敏后的文本
+    """
+    for pattern, replacement in _UID_MASK_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text

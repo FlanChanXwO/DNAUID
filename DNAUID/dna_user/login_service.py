@@ -5,6 +5,7 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..utils import dna_api
+from ..utils.utils import mask_uid_in_text
 from ..utils.api.model import DNALoginRes, DNARoleListRes
 from ..utils.database.models import DNABind, DNAUser
 from ..utils.constants.constants import DNA_GAME_ID
@@ -96,10 +97,15 @@ class DNALoginService:
 
         msg = ["登录成功, 已为您绑定以下角色:"]
         for role in role_ids_msg:
-            msg.append(f"- UID: [{role['uid']}] 名字: {role['name']}")
+            msg.append(f"- 名字: {role['name']}")
         return "\n".join(msg)
 
     async def get_cookie(self) -> Union[List[str], str]:
+        from ..utils.utils import is_uid_hidden
+
+        # 检查 UID 是否应该被隐藏（优先群级设置，其次个人设置）
+        uid_hidden = await is_uid_hidden(self.ev.user_id, self.ev.bot_id, self.ev.group_id)
+
         uid_list = await DNABind.get_uid_list_by_game(self.ev.user_id, self.ev.bot_id)
         if not uid_list:
             return "您当前未绑定token或者token已全部失效\n"
@@ -116,4 +122,8 @@ class DNALoginService:
         if not msg:
             return "您当前未绑定token或者token已全部失效\n"
 
-        return "\n".join(msg)
+        result = "\n".join(msg)
+        # 应用UID脱敏
+        if uid_hidden:
+            result = mask_uid_in_text(result)
+        return result

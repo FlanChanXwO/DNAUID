@@ -5,6 +5,7 @@ from gsuid_core.bot import Bot
 from gsuid_core.models import Event
 
 from ..utils import dna_api
+from ..utils.utils import is_uid_hidden
 from .login_router import get_cookie, page_login
 from ..utils.msgs.notify import (
     dna_login_fail,
@@ -103,6 +104,12 @@ async def send_dna_bind_uid_msg(bot: Bot, ev: Event):
 
         return await dna_bind_uid_result(bot, ev, uid, -5)
     elif "查看" in ev.command:
+        # 检查 UID 是否应该被隐藏（优先群级设置，其次个人设置）
+        uid_hidden = await is_uid_hidden(qid, ev.bot_id, ev.group_id)
+
+        if uid_hidden:
+            return await bot.send("您已开启UID隐藏，无法查看UID列表~")
+
         uid_list = await DNABind.get_uid_list_by_game(qid, ev.bot_id)
         if uid_list:
             uids = "\n".join(uid_list)
