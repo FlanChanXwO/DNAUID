@@ -8,6 +8,21 @@ from gsuid_core.utils.plugins_config.models import (
     GsListStrConfig,
 )
 
+try:
+    from gsuid_core.utils.plugins_config.models import GsTimeRConfig
+
+    _sign_time_config = GsTimeRConfig(
+        "每晚签到时间设置",
+        "每晚二重螺旋签到时间设置",
+        (0, 5),
+    )
+except ImportError:
+    _sign_time_config = GsTimeConfig(  # type: ignore[assignment]
+        "每晚签到时间设置",
+        "每晚二重螺旋签到时间设置",
+        "00:05",
+    )
+
 CONFIG_SIGN: Dict[str, GSC] = {
     "DNASignin": GsBoolConfig(
         "二重螺旋游戏签到开关",
@@ -41,11 +56,7 @@ CONFIG_SIGN: Dict[str, GSC] = {
         "定时签到开关",
         False,
     ),
-    "SignTime": GsTimeConfig(
-        "每晚签到时间设置",
-        "每晚二重螺旋签到时间设置",
-        "00:05",
-    ),
+    "SignTime": _sign_time_config,
     "SigninConcurrentNum": GsIntConfig("自动签到并发数量", "自动签到并发数量", 1, max_value=50),
     "SigninConcurrentNumInterval": GsListStrConfig(
         "自动签到并发数量间隔，默认3-5秒",

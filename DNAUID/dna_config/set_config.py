@@ -45,7 +45,11 @@ async def set_config_func(ev: Event, uid: str = "0"):
             from .dna_config import DNASignConfig
 
             SIGN_TIME = DNASignConfig.get_config("SignTime").data
-            other_msg = f"😄将于[{SIGN_TIME}]点自动为您开始{config_name}"
+            if isinstance(SIGN_TIME, tuple):
+                sign_time_str = f"{SIGN_TIME[0]:02d}:{SIGN_TIME[1]:02d}"
+            else:
+                sign_time_str = SIGN_TIME
+            other_msg = f"😄将于[{sign_time_str}]点自动为您开始{config_name}"
 
     else:
         return "该配置项不存在!"

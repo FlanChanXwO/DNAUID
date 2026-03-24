@@ -18,13 +18,19 @@ sv_dna_sign_calendar = SV("dna签到日历")
 
 SIGN_TIME = DNASignConfig.get_config("SignTime").data
 try:
-    hour, minute = SIGN_TIME.split(":")
-    int_hour = int(hour)
-    int_minute = int(minute)
-    if int_hour < 0 or int_hour > 23 or int_minute < 0 or int_minute > 59:
-        hour = "0"
-        minute = "5"
-except ValueError:
+    if isinstance(SIGN_TIME, tuple):
+        int_hour, int_minute = SIGN_TIME
+        if int_hour < 0 or int_hour > 23 or int_minute < 0 or int_minute > 59:
+            int_hour, int_minute = 0, 5
+        hour, minute = str(int_hour), str(int_minute)
+    else:
+        hour, minute = SIGN_TIME.split(":")
+        int_hour = int(hour)
+        int_minute = int(minute)
+        if int_hour < 0 or int_hour > 23 or int_minute < 0 or int_minute > 59:
+            hour = "0"
+            minute = "5"
+except (ValueError, TypeError):
     hour = "0"
     minute = "5"
 
