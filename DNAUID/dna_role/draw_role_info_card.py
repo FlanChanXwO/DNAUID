@@ -68,11 +68,6 @@ class ItemTemp(BaseModel):
 
 async def draw_role_info_card(bot: Bot, ev: Event):
     user_id = await get_using_id(ev)
-    # 防偷窥检查逻辑说明：
-    # - ev.at 为真：表示用户尝试@某人查询
-    # - user_id == ev.user_id：表示get_using_id返回了查询者自己（被阻止或查自己）
-    # - ev.at != ev.user_id：排除"AT自己"的情况（用户查自己不应被阻止）
-    # 总结：只有当用户@他人查询，且被隐私设置阻止时，才提示防偷窥
     if ev.at and user_id == ev.user_id and ev.at != ev.user_id:
         await dna_peek_blocked(bot, ev)
         return
