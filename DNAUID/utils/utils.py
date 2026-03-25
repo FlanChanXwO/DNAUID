@@ -146,6 +146,18 @@ def get_two_days_ago_date():
 
 
 async def get_using_id(ev: Event) -> str:
+    """获取要查询的用户ID
+
+    逻辑说明:
+    1. 没有@目标 -> 查询自己
+    2. AT自己 -> 查询自己（不受偷窥权限限制，用户有权查看自己的数据）
+    3. AT他人 -> 检查群强制设置和被@用户的隐私设置
+       - 如果群强制全体防偷窥或被@用户未开启偷窥 -> 返回自己ID（表示被阻止）
+       - 否则 -> 返回被@用户ID
+
+    Returns:
+        str: 要查询的用户ID（如果返回ev.user_id表示被阻止或查询自己）
+    """
     from ..dna_config.dna_config import DNAConfig
     from ..utils.database.models import DNAPrivacy, DNAGroupPrivacy
 
