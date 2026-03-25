@@ -27,6 +27,7 @@ sv_dna_privacy_admin = SV("DNA群隐私控制", pm=3)
 
 # region 偷窥权限控制命令
 
+
 @sv_dna_privacy.on_fullmatch(("开偷窥", "关闭偷窥防护"))
 async def _enable_peek_personal(bot: Bot, ev: Event):
     await enable_peek_personal(bot, ev)
@@ -61,9 +62,11 @@ async def _disable_peek_all(bot: Bot, ev: Event):
 async def _cancel_peek_all(bot: Bot, ev: Event):
     await cancel_peek_all(bot, ev)
 
+
 # endregion
 
 # region UID隐藏控制命令
+
 
 @sv_dna_privacy.on_fullmatch(("隐藏UID", "隐藏uid"))
 async def _enable_uid_hidden(bot: Bot, ev: Event):
@@ -98,5 +101,6 @@ async def _disable_uid_hidden_all(bot: Bot, ev: Event):
 @sv_dna_privacy_admin.on_fullmatch("取消全体UID隐藏")
 async def _cancel_uid_hidden_all(bot: Bot, ev: Event):
     await cancel_uid_hidden_all(bot, ev)
+
 
 # endregion
