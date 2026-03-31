@@ -46,6 +46,11 @@ ANN_LIST_URL = f"{MAIN_URL}/user/mine"
 CALENDAR_LIST_URL = f"{MAIN_URL}/forum/wiki/home/page/list"
 ACTIVITY_LIST_URL = f"{MAIN_URL}/encourage/calendar/Activity/list"
 
+# wiki
+WIKI_HOME_LIST_URL = f"{MAIN_URL}/forum/wiki/home/page/list"
+WIKI_LIST_URL = f"{MAIN_URL}/forum/wiki/list"
+WIKI_DETAIL_URL = f"{MAIN_URL}/forum/wiki/getDetail"
+
 
 def get_local_proxy_url():
     from ...dna_config.dna_config import DNAConfig

@@ -677,3 +677,6 @@ condition-*.json
 
 .pdm-build
 .ruff_cache
+
+# test wiki data
+DNAUID/dna_test/

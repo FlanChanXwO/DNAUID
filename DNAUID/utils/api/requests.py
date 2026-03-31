@@ -17,10 +17,12 @@ from .api import (
     LIKE_POST_URL,
     LOGIN_LOG_URL,
     ROLE_LIST_URL,
+    WIKI_LIST_URL,
     REPLY_POST_URL,
     SHARE_POST_URL,
     SHORT_NOTE_URL,
     ROLE_DETAIL_URL,
+    WIKI_DETAIL_URL,
     GET_SMS_CODE_URL,
     HAVE_SIGN_IN_URL,
     ACTIVITY_LIST_URL,
@@ -30,6 +32,7 @@ from .api import (
     ROLE_FOR_TOOL_URL,
     SIGN_CALENDAR_URL,
     WEAPON_DETAIL_URL,
+    WIKI_HOME_LIST_URL,
     GET_POST_DETAIL_URL,
     GET_TASK_PROCESS_URL,
     GET_RSA_PUBLIC_KEY_URL,
@@ -427,6 +430,63 @@ class DNAApi:
         if res.is_success and isinstance(res.data, dict):
             return res.data.get("vos", [])
         return []
+
+    async def get_wiki_home_list(self):
+        headers = await get_base_header(is_h5=True, is_need_origin=True, is_need_refer=True)
+        data = {}
+        try:
+            res = await self._dna_request(WIKI_HOME_LIST_URL, "POST", headers, data=data)
+            if res.is_success and isinstance(res.data, dict):
+                return res.data
+            return None
+        except Exception as e:
+            logger.exception("get_wiki_home_list", e)
+            return None
+
+    async def get_wiki_list(
+        self,
+        wiki_type: int = 1,
+        page_num: int = 1,
+        page_size: int = 20,
+        filter_ids: Optional[str] = None,
+    ):
+        """获取图鉴列表
+
+        Args:
+            wiki_type: 图鉴类型，1=角色图鉴, 2=武器图鉴, 3=魔之楔图鉴, 4=魔灵图鉴, etc.
+            page_num: 页码
+            page_size: 每页数量
+            filter_ids: 筛选条件ID，多个用逗号分隔
+        """
+        headers = await get_base_header(is_h5=True, is_need_origin=True, is_need_refer=True)
+        data: Dict[str, Any] = {
+            "pageNum": page_num,
+            "pageSize": page_size,
+            "id": wiki_type,  # 使用 categorize ID 而非 WikiType 枚举值
+        }
+        if filter_ids:
+            data["filterIds"] = filter_ids
+        try:
+            res = await self._dna_request(WIKI_LIST_URL, "POST", headers, data=data)
+            return res
+        except Exception as e:
+            logger.exception("get_wiki_list", e)
+            return DNAApiResp[Any].err("请求皎皎角Wiki服务失败")
+
+    async def get_wiki_detail(self, wiki_id: str):
+        """获取图鉴详情
+
+        Args:
+            wiki_id: 图鉴的wikiId
+        """
+        headers = await get_base_header(is_h5=True, is_need_origin=True, is_need_refer=True)
+        data = {"id": wiki_id}
+        try:
+            res = await self._dna_request(WIKI_DETAIL_URL, "POST", headers, data=data)
+            return res
+        except Exception as e:
+            logger.exception("get_wiki_detail", e)
+            return DNAApiResp[Any].err("请求皎皎角Wiki详情失败")
 
     async def get_activity_info(self):
         now = datetime.now()
