@@ -145,11 +145,30 @@ def get_two_days_ago_date():
     return two_days_ago.strftime("%Y-%m-%d")
 
 
+def has_valid_at(ev: Event) -> bool:
+    """检查是否存在有效的 @ 目标
+
+    过滤无效的 at 数据（如 QQ 官方平台传入平台名称而非用户 ID）
+
+    Args:
+        ev: 事件对象
+
+    Returns:
+        bool: True 表示存在有效的 @ 目标
+    """
+    if not ev.at:
+        return False
+    # 过滤无效的 at 数据（如 QQ 官方平台传入平台名称而非用户 ID）
+    if ev.at == ev.bot_id or ev.at == ev.real_bot_id:
+        return False
+    return True
+
+
 async def get_using_id(ev: Event) -> str:
     """获取要查询的用户ID
 
     逻辑说明:
-    1. 没有@目标 -> 查询自己
+    1. 无有效@目标（无@或@数据无效如平台名称） -> 查询自己
     2. AT自己 -> 查询自己（不受偷窥权限限制，用户有权查看自己的数据）
     3. AT他人 -> 检查群强制设置和被@用户的隐私设置
        - 如果群强制全体防偷窥或被@用户未开启偷窥 -> 返回自己ID（表示被阻止）
@@ -161,8 +180,8 @@ async def get_using_id(ev: Event) -> str:
     from ..dna_config.dna_config import DNAConfig
     from ..utils.database.models import DNAPrivacy, DNAGroupPrivacy
 
-    # 没有 @ 目标
-    if not ev.at:
+    # 无有效的 @ 目标
+    if not has_valid_at(ev):
         return ev.user_id
 
     # 用户AT自己，查询自己的数据，不受偷窥权限限制
@@ -190,6 +209,31 @@ async def get_using_id(ev: Event) -> str:
     if privacy and not privacy.allow_peek:
         return ev.user_id
     return ev.at
+
+
+def is_peek_blocked(ev: Event, user_id: str) -> bool:
+    """检查是否因偷窥权限被阻止查询他人数据
+
+    判断逻辑：
+    1. 存在有效的 @ 目标（过滤无效 at 数据）
+    2. @ 的不是自己
+    3. get_using_id 返回的是自己的 ID
+
+    Args:
+        ev: 事件对象
+        user_id: get_using_id 返回的用户 ID
+
+    Returns:
+        bool: True 表示被阻止，应该显示防偷窥提示
+    """
+    # 没有有效的 @ 目标
+    if not has_valid_at(ev):
+        return False
+    # @ 的是自己
+    if ev.at == ev.user_id:
+        return False
+    # 返回的是自己的 ID，说明被阻止了
+    return user_id == ev.user_id
 
 
 async def is_uid_hidden(user_id: str, bot_id: str, group_id: Optional[str] = None) -> bool:
