@@ -9,7 +9,14 @@ def rand_str(length: int) -> str:
     return "".join(random.choice(chars) for _ in range(length))
 
 
+def rand_digit_str(length: int) -> str:
+    """1.3.0 版本的随机串：仅数字，字符集与 Java 端 p63.b() 一致"""
+    chars = "01234567890123456789012345678901234567890123456789010123456789"
+    return "".join(random.choice(chars) for _ in range(length))
+
+
 def rsa_encrypt(data: str, public_key_base64: str) -> str:
+    """RSA/ECB/PKCS1Padding 加密，支持分段（每段最多 117 字节）"""
     try:
         from Crypto.Cipher import PKCS1_v1_5
         from Crypto.PublicKey import RSA
@@ -18,7 +25,15 @@ def rsa_encrypt(data: str, public_key_base64: str) -> str:
     try:
         key = RSA.importKey(base64.b64decode(public_key_base64))
         cipher = PKCS1_v1_5.new(key)
-        return base64.b64encode(cipher.encrypt(data.encode("utf-8"))).decode("utf-8")
+        raw = data.encode("utf-8")
+        max_block = 117
+        result = b""
+        offset = 0
+        while offset < len(raw):
+            block = raw[offset : offset + max_block]
+            result += cipher.encrypt(block)
+            offset += max_block
+        return base64.b64encode(result).decode("utf-8")
     except Exception as e:
         raise RuntimeError(f"RSA Encrypt Error: {e}")
 

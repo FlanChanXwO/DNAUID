@@ -3,6 +3,7 @@ from typing import Any, Dict, Tuple
 
 from .sign_120 import generate_headers_120
 from .sign_122 import generate_headers_122
+from .sign_130 import generate_headers_130
 
 # 兜底列表，服务端动态下发时会被覆盖
 SIGN_API_LIST = [
@@ -44,7 +45,8 @@ def get_signed_headers_and_body(
     get_ws_manager().get_connection(token, dev_code, wait_ready=True, timeout=get_ws_wait_time())
 
     version = header.get("version", "")
-    # source = header.get("source", "")
-    if version == "1.2.2":
+    if version == "1.3.0":
+        return generate_headers_130(header, data, rsa_public_key)
+    elif version == "1.2.2":
         return generate_headers_122(header, data, rsa_public_key)
     return generate_headers_120(header, data, rsa_public_key)
