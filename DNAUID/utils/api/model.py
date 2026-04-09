@@ -163,7 +163,7 @@ class RoleAttribute(BaseModel):
     skillRange: str = Field(description="技能范围")
     strongValue: str = Field(description="strongValue")
     skillIntensity: str = Field(description="技能威力")
-    weaponTags: List[str] = Field(description="武器精通")
+    weaponTags: List[Optional[str]] = Field(description="武器精通")
     defense: int = Field(description="防御", alias="def")
     enmityValue: str = Field(description="enmityValue")
     skillEfficiency: str = Field(description="技能效益")
