@@ -119,6 +119,8 @@ async def get_skill_img(char_id: Union[str, int], skill_name: str, pic_url: Opti
     if not skill_path.exists():
         if pic_url:
             await download(pic_url, char_skill_dir, name, tag="[DNA]")
+    if not skill_path.exists():
+        return Image.new("RGBA", (128, 128))
 
     return Image.open(skill_path).convert("RGBA")
 
