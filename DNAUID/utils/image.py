@@ -134,6 +134,8 @@ async def get_avatar_img(char_id: Union[str, int], pic_url: Optional[str] = None
     if not avatar_path.exists():
         if pic_url:
             await download(pic_url, char_avatar_dir, name, tag="[DNA]")
+    if not avatar_path.exists():
+        return Image.new("RGBA", (256, 256))
 
     return Image.open(avatar_path).convert("RGBA")
 
@@ -147,6 +149,8 @@ async def get_weapon_img(weapon_id: Union[str, int], pic_url: Optional[str] = No
     if not weapon_path.exists():
         if pic_url:
             await download(pic_url, weapon_dir, name, tag="[DNA]")
+    if not weapon_path.exists():
+        return Image.new("RGBA", (256, 256))
 
     return Image.open(weapon_path).convert("RGBA")
 
@@ -198,6 +202,8 @@ async def get_paint_img(char_id: Union[str, int], pic_url: Optional[str] = None)
     if not paint_path.exists():
         if pic_url:
             await download(pic_url, paint_dir, name, tag="[DNA]")
+    if not paint_path.exists():
+        return Image.new("RGBA", (1320, 1320))
 
     return Image.open(paint_path).convert("RGBA")
 
@@ -235,6 +241,8 @@ async def get_mod_img(mod_id: Union[str, int], pic_url: Optional[str] = None) ->
     if not mod_path.exists():
         if pic_url:
             await download(pic_url, mod_dir, name, tag="[DNA]")
+    if not mod_path.exists():
+        return Image.new("RGBA", (256, 256))
 
     return Image.open(mod_path).convert("RGBA")
 
