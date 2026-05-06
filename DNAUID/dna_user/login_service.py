@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Union, Optional
+from typing import Optional
 
 from gsuid_core.bot import Bot
 from gsuid_core.models import Event
@@ -36,9 +36,26 @@ class DNALoginService:
         return await self.dna_login_token(login_response, dev_code)
 
     async def dna_login_token(self, login_response: DNALoginRes, dev_code: Optional[str] = None):
+        return await self.dna_login_by_token(
+            token=login_response.token,
+            dev_code=dev_code,
+            refresh_token=login_response.refreshToken,
+            d_num=login_response.dNum,
+        )
+
+    async def dna_login_by_token(
+        self,
+        token: str,
+        dev_code: Optional[str] = None,
+        refresh_token: Optional[str] = "",
+        d_num: Optional[str] = "",
+    ):
+        token = token.strip()
+        if not token:
+            return "token不能为空"
         if not dev_code:
             dev_code = await self.get_dev_code()
-        role_list_response = await dna_api.get_role_list(login_response.token, dev_code)
+        role_list_response = await dna_api.get_role_list(token, dev_code)
         if not role_list_response.is_success:
             return role_list_response.throw_msg()
         if not role_list_response.data:
@@ -57,29 +74,31 @@ class DNALoginService:
             for show_vo in role.showVoList:
                 uid = show_vo.roleId
 
-                user = await DNAUser.get_user_by_attr(user_id, bot_id, "uid", uid)
+                user: Optional[DNAUser] = await DNAUser.get_user_by_attr(user_id, bot_id, "uid", uid)
 
                 if user:
+                    update_data: dict[str, str] = {
+                        "cookie": token,
+                        "status": "",
+                        "dev_code": dev_code,
+                        "d_num": d_num or "",
+                        "refresh_token": refresh_token or "",
+                    }
+
                     await DNAUser.update_data_by_data(
                         select_data={"user_id": user_id, "bot_id": bot_id, "uid": uid},
-                        update_data={
-                            "cookie": login_response.token,
-                            "status": "",
-                            "dev_code": dev_code,
-                            "d_num": login_response.dNum,
-                            "refresh_token": login_response.refreshToken,
-                        },
+                        update_data=update_data,
                     )
                 else:
                     await DNAUser.insert_data(
                         user_id=user_id,
                         bot_id=bot_id,
-                        cookie=login_response.token,
+                        cookie=token,
                         uid=uid,
                         status="",
                         dev_code=dev_code,
-                        d_num=login_response.dNum,
-                        refresh_token=login_response.refreshToken,
+                        d_num=d_num or "",
+                        refresh_token=refresh_token or "",
                     )
 
                 res = await DNABind.insert_uid(user_id, bot_id, uid, group_id, lenth_limit=13)
@@ -100,27 +119,34 @@ class DNALoginService:
             msg.append(f"- 名字: {role['name']}")
         return "\n".join(msg)
 
-    async def get_cookie(self) -> Union[List[str], str]:
+    async def get_cookie(self) -> str:
         from ..utils.utils import is_uid_hidden
 
         # 检查 UID 是否应该被隐藏（优先群级设置，其次个人设置）
         uid_hidden = await is_uid_hidden(self.ev.user_id, self.ev.bot_id, self.ev.group_id)
 
-        uid_list = await DNABind.get_uid_list_by_game(self.ev.user_id, self.ev.bot_id)
-        if not uid_list:
-            return "您当前未绑定token或者token已全部失效\n"
+        dna_users: list[DNAUser] = await DNAUser.select_dna_users(self.ev.user_id, self.ev.bot_id)
+        if not dna_users:
+            return "当前并未登录"
 
-        msg = []
-        for uid in uid_list:
-            dna_user: Optional[DNAUser] = await dna_api.get_dna_user(uid, self.ev.user_id, self.ev.bot_id)
+        msg: list[str] = []
+        seen_tokens: set[str] = set()
+        for raw_user in dna_users:
+            if not raw_user.cookie or raw_user.cookie in seen_tokens:
+                continue
+            dna_user = await dna_api.check_cookie(raw_user)
             if not dna_user:
                 continue
-            msg.append(f"二重螺旋uid: {uid}")
-            msg.append(f"token: {dna_user.cookie}")
+            if dna_user.cookie in seen_tokens:
+                continue
+            seen_tokens.add(dna_user.cookie)
+            msg.append(f"二重螺旋UID: {dna_user.uid}")
+            msg.append("token:")
+            msg.append(dna_user.cookie)
             msg.append("--------------------------------")
 
         if not msg:
-            return "您当前未绑定token或者token已全部失效\n"
+            return "未找到可用的二重螺旋token"
 
         result = "\n".join(msg)
         # 应用UID脱敏

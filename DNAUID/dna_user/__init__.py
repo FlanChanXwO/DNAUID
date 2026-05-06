@@ -6,7 +6,7 @@ from gsuid_core.models import Event
 
 from ..utils import dna_api
 from ..utils.utils import is_uid_hidden
-from .login_router import get_cookie, page_login
+from .login_router import get_cookie, page_login, token_login
 from ..utils.msgs.notify import (
     dna_login_fail,
     send_dna_notify,
@@ -34,14 +34,11 @@ async def dna_login(bot: Bot, ev: Event):
     text = re.sub(r'["\n\t ]+', "", ev.text.strip())
     text = text.replace("，", ",")
 
-    # 1.网页登录  -> dna登录
-    # 2.手机+验证码登录 -> dna登录 手机号,验证码
-    # 3.token登录 -> dna登录 token
     if text == "":
         return await page_login(bot, ev)
 
-    # if text.startswith("eyJh"):
-    #     return await token_login(bot, ev, text)
+    if "," not in text and len(text) >= 40:
+        return await token_login(bot, ev, text)
 
     return await dna_login_fail(bot, ev)
 
@@ -146,4 +143,4 @@ async def send_dna_bind_uid_msg(bot: Bot, ev: Event):
     block=True,
 )
 async def send_dna_get_ck_msg(bot: Bot, ev: Event):
-    await bot.send(await get_cookie(bot, ev))
+    await send_dna_notify(bot, ev, await get_cookie(bot, ev))

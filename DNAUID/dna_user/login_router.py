@@ -11,7 +11,7 @@ from starlette.responses import HTMLResponse
 from gsuid_core.bot import Bot
 from gsuid_core.config import core_config
 from gsuid_core.logger import logger
-from gsuid_core.models import Event
+from gsuid_core.models import Event, Message
 from gsuid_core.segment import MessageSegment
 from gsuid_core.web_app import app
 from gsuid_core.utils.cookie_manager.qrlogin import get_qrcode_base64
@@ -46,8 +46,11 @@ async def page_login(bot: Bot, ev: Event):
 
 async def token_login(bot: Bot, ev: Event, token: str):
     """token登录入口"""
+    token = token.strip()
     login_service = DNALoginService(bot, ev)
-    login_result = await login_service.dna_login_token(token=token)  # pyright: ignore[reportCallIssue]
+    login_result = await login_service.dna_login_by_token(
+        token=token,
+    )
     await send_dna_notify(bot, ev, login_result)
 
 
@@ -87,20 +90,20 @@ async def send_login(bot: Bot, ev: Event, url: str):
     if DNAConfig.get_config("DNAQRLogin").data:
         path = Path(__file__).parent / f"{ev.user_id}.gif"
 
-        im = [
-            f"[二重螺旋] 您的id为【{ev.user_id}】\n",
-            "请扫描下方二维码获取登录地址，并复制地址到浏览器打开\n",
+        qr_items: list[Message] = [
+            MessageSegment.text(f"[二重螺旋] 您的id为【{ev.user_id}】\n"),
+            MessageSegment.text("请扫描下方二维码获取登录地址，并复制地址到浏览器打开\n"),
             MessageSegment.image(await get_qrcode_base64(url, path, ev.bot_id)),
         ]
 
         if DNAConfig.get_config("DNALoginForward").data:
             if not ev.group_id and ev.bot_id == "onebot":
                 # 私聊+onebot 不转发
-                await bot.send(im)
+                await bot.send(qr_items)
             else:
-                await bot.send(MessageSegment.node(im))
+                await bot.send(MessageSegment.node(qr_items))
         else:
-            await bot.send(im, at_sender=at_sender)
+            await bot.send(qr_items, at_sender=at_sender)
 
         if path.exists():
             path.unlink()
@@ -108,7 +111,7 @@ async def send_login(bot: Bot, ev: Event, url: str):
         # 登录
         if DNAConfig.get_config("DNATencentWord").data:
             url = f"https://docs.qq.com/scenario/link.html?url={url}"
-        im = [
+        lines = [
             f"[二重螺旋] 您的id为【{ev.user_id}】",
             "请复制地址到浏览器打开",
             f" {url}",
@@ -118,11 +121,11 @@ async def send_login(bot: Bot, ev: Event, url: str):
         if DNAConfig.get_config("DNALoginForward").data:
             if not ev.group_id and ev.bot_id == "onebot":
                 # 私聊+onebot 不转发
-                await bot.send("\n".join(im))
+                await bot.send("\n".join(lines))
             else:
-                await bot.send(MessageSegment.node(im))
+                await bot.send(MessageSegment.node(lines))
         else:
-            await bot.send("\n".join(im), at_sender=at_sender)
+            await bot.send("\n".join(lines), at_sender=at_sender)
 
 
 class LoginParams(BaseModel):
@@ -183,7 +186,12 @@ async def page_login_other(bot: Bot, ev: Event, url: str):
 
                 cache.delete(user_token)
                 login_service: DNALoginService = DNALoginService(bot, ev)
-                login_result = await login_service.dna_login_token(data["cookies"], data["dev_code"])
+                login_result = await login_service.dna_login_by_token(
+                    token=data["cookies"],
+                    dev_code=data.get("dev_code"),
+                    refresh_token=data.get("refresh_token", ""),
+                    d_num=data.get("d_num", ""),
+                )
                 await send_dna_notify(bot, ev, login_result)
                 break
 
@@ -196,6 +204,7 @@ async def page_login_local(bot: Bot, ev: Event, url):
         return
 
     # 手机登录
+    text = ""
     login_params = LoginParams(auth=login_auth, user_id=ev.user_id)
     cache.set(login_auth, login_params)
     try:
@@ -215,6 +224,7 @@ async def page_login_local(bot: Bot, ev: Event, url):
         return await dna_login_timeout(bot, ev)
     except Exception as e:
         logger.error(e)
+        return await send_dna_notify(bot, ev, "登录服务请求失败! 请稍后再试")
 
     return await code_login(bot, ev, text, True)
 
