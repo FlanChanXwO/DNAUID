@@ -203,9 +203,24 @@ class SignService:
             return True
 
         calendar_sign = DNACalendarSignRes.model_validate(res.data)
+
+        # 后端偶发返回精简响应 (缺 todaySignin / signinTime / dayAward), 跳过本次签到.
+        if calendar_sign.todaySignin is None or calendar_sign.signinTime is None or not calendar_sign.dayAward:
+            logger.warning(f"[DNAUID] [自动签到] {self.uid} 签到日历返回数据不完整, 跳过本次: {res.data}")
+            self.msg_temp["signed"] = "failed"
+            return
+
         if calendar_sign.todaySignin:
             self.msg_temp["signed"] = "skip"
             self.dna_sign.game_sign = SignTarget.GAME_SIGN
+            return
+
+        if calendar_sign.signinTime >= len(calendar_sign.dayAward):
+            logger.warning(
+                f"[DNAUID] [自动签到] {self.uid} signinTime={calendar_sign.signinTime} "
+                f"超出 dayAward 长度 {len(calendar_sign.dayAward)}"
+            )
+            self.msg_temp["signed"] = "failed"
             return
 
         today_sign_award = calendar_sign.dayAward[calendar_sign.signinTime]

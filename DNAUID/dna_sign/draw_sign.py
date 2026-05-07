@@ -58,6 +58,10 @@ async def _draw_sign_calendar(
 ):
     task_list = task_process.dailyTask if task_process else None
 
+    # 后端在「未签到 / 未绑定角色」时会精简返回, 这两个字段可能为 None
+    user_gold_num = sign_data.userGoldNum if sign_data.userGoldNum is not None else 0
+    signin_time = sign_data.signinTime if sign_data.signinTime is not None else 0
+
     title_h = 270
     info_h = 120
     div_h = 100
@@ -87,9 +91,9 @@ async def _draw_sign_calendar(
     # 皎皎积分，社区累计签到，游戏累计签到，总活跃天数
     # 成就展示
     achievement_info = [
-        ("皎皎积分", str(sign_data.userGoldNum)),
+        ("皎皎积分", str(user_gold_num)),
         ("社区累计签到", str(bbs_total_sign_in_day)),
-        ("游戏累计签到", str(sign_data.signinTime)),
+        ("游戏累计签到", str(signin_time)),
     ]
     achievement_info.extend([(i.paramKey, i.paramValue) for i in role_show.params if i.paramKey in ("总活跃天数")])
     info_bar = Image.new("RGBA", (1300, 88))
@@ -148,8 +152,8 @@ async def _draw_sign_calendar(
         item_bg = global_item_bg.copy()
         item_bg_draw = ImageDraw.Draw(item_bg)
 
-        is_signed = day <= sign_data.signinTime
-        is_current = day == sign_data.signinTime
+        is_signed = day <= signin_time
+        is_current = day == signin_time
 
         award = award_dict.get(day)
         if award:

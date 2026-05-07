@@ -153,6 +153,10 @@ async def draw_stamina_img(bot: Bot, ev: Event):
     if draft_info and draft_info.draftDoingNum > 0 and draft_info.draftDoingInfo:
         time_now = int(time.time())
         for index, draft in enumerate(draft_info.draftDoingInfo):
+            # 空槽 / 异常槽位后端只回 startTime, productName / endTime 缺失则跳过
+            if not draft.productName or not draft.endTime:
+                continue
+
             draft_bg = Image.open(TEXT_PATH / "draft_bg.png")
             draft_bg_draw = ImageDraw.Draw(draft_bg)
             draft_bg_draw.text((115, 33), draft.productName, COLOR_WHITE, dna_font_36, "lm")

@@ -62,9 +62,10 @@ class DNARoleForToolInstanceInfo(BaseModel):
 class DraftDoingInfo(BaseModel):
     draftCompleteNum: int = Field(description="draftCompleteNum")
     draftDoingNum: int = Field(description="draftDoingNum")
-    endTime: str = Field(description="结束时间")
-    productId: Optional[int] = Field(description="productId")
-    productName: str = Field(description="productName")
+    # 空槽 / 异常状态时后端可能不返回 endTime / productName / productId
+    endTime: Optional[str] = Field(description="结束时间", default=None)
+    productId: Optional[int] = Field(description="productId", default=None)
+    productName: Optional[str] = Field(description="productName", default=None)
     startTime: str = Field(description="开始时间")
 
 
@@ -276,12 +277,14 @@ class DNACaSignRoleInfo(BaseModel):
 
 
 class DNACalendarSignRes(BaseModel):
-    todaySignin: bool = Field(description="todaySignin")
-    userGoldNum: int = Field(description="userGoldNum")
-    dayAward: List[DNADayAward] = Field(description="dayAward")
-    signinTime: int = Field(description="signinTime")
+    # 当日尚未签到 / 账号未绑定角色时, 后端可能只回 period + dayAward + continueAward,
+    # 顶层签到状态字段和 roleInfo 全部省略 -> 这里允许它们缺失, 由调用方判空再决定走签到还是渲染.
+    todaySignin: Optional[bool] = Field(description="todaySignin", default=None)
+    userGoldNum: Optional[int] = Field(description="userGoldNum", default=None)
+    dayAward: List[DNADayAward] = Field(description="dayAward", default_factory=list)
+    signinTime: Optional[int] = Field(description="signinTime", default=None)
     period: DNACaSignPeriod = Field(description="period")
-    roleInfo: DNACaSignRoleInfo = Field(description="roleInfo")
+    roleInfo: Optional[DNACaSignRoleInfo] = Field(description="roleInfo", default=None)
 
 
 class DNABBSTask(BaseModel):
