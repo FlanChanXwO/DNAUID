@@ -43,7 +43,6 @@ from .api import (
 from .dnum import check_decrypt_dnum
 from .sign import get_dev_code, get_signed_headers_and_body
 from ..utils import timed_async_cache
-from .ws_manager import get_ws_manager
 from .request_util import RespCode, DNAApiResp, get_base_header
 from ..database.models import DNAUser
 from ..constants.constants import DNA_GAME_ID
@@ -85,19 +84,9 @@ class DNAApi:
         return await self.check_cookie(dna_user)
 
     async def get_random_dna_user(self) -> Optional[DNAUser]:
-        # 优先从 WebSocket 连接池获取活跃的 token
-        active_tokens = get_ws_manager().get_active_tokens()
-        if active_tokens:
-            random.shuffle(active_tokens)
-            for token, dev_code in active_tokens[:3]:
-                if dna_user := await DNAUser.select_data_by_cookie(token):
-                    if check_cookie := await self.check_cookie(dna_user):
-                        return check_cookie
-
-        # 如果 WebSocket 连接池中没有可用用户，回退到数据库查询
         dna_users = await DNAUser.get_dna_all_user()
         if not dna_users:
-            return
+            return None
         random.shuffle(dna_users)
         for dna_user in dna_users[:3]:
             check_cookie = await self.check_cookie(dna_user)
@@ -123,8 +112,8 @@ class DNAApi:
             f" d_num={dna_user.d_num},"
             f" dr={dr}"
         )
-        if dr > 0:
-            return dna_user
+        # if dr > 0:
+        #     return dna_user
 
         if dr == 0 and dna_user.refresh_token:
             res = await self.refresh_token(dna_user.cookie, dna_user.refresh_token, dna_user.dev_code)
@@ -204,7 +193,7 @@ class DNAApi:
         )
         return await self._dna_request(REFRESH_TOKEN_URL, "POST", headers, data=payload)
 
-    @timed_async_cache(86400, lambda x: x and x.success)
+    @timed_async_cache(3600, lambda x: x and x.success)
     async def login_log(self, token: str, dev_code: Optional[str] = None):
         headers = await get_base_header(dev_code=dev_code, token=token)
         res = await self._dna_request(LOGIN_LOG_URL, "POST", headers)
