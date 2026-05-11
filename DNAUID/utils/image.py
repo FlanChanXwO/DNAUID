@@ -145,7 +145,7 @@ async def get_weapon_img(weapon_id: Union[str, int], pic_url: Optional[str] = No
     if not weapon_path.exists():
         return Image.new("RGBA", (256, 256))
 
-    return Image.open(weapon_path).convert("RGBA")
+    return Image.open(weapon_path).resize((256, 256)).convert("RGBA")
 
 
 async def get_attr_img(attr_id: Optional[Union[str, int]] = None, pic_url: Optional[str] = None) -> Image.Image:
