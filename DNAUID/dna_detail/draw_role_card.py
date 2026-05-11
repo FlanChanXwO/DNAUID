@@ -192,14 +192,16 @@ async def draw_role_card(bot: Bot, ev: Event, char_name: str):
 
     card.alpha_composite(info_bg, (550, 80))
 
-    # 命座解锁
+    # 命座解锁：7 级满命画 7 格，其余按 6 格；首末位置固定，步长按格数均分
     grade_unlock_bg = Image.new("RGBA", (1000, 130), (0, 0, 0, 0))
-    for i in range(1, 7):
+    grade_total = 7 if role_detail.gradeLevel >= 7 else 6
+    grade_step = 750 // (grade_total - 1)
+    for i in range(1, grade_total + 1):
         grade_bg = grade_lock_img.copy() if i > role_detail.gradeLevel else grade_unlock_img.copy()
         grade_img = get_grade_img(i)
         grade_img = grade_img.resize((int(grade_img.width * 1.8), int(grade_img.height * 1.8)))
         grade_bg.alpha_composite(grade_img, (33, 37))
-        grade_unlock_bg.alpha_composite(grade_bg, (100 + (i - 1) * 150, 0))
+        grade_unlock_bg.alpha_composite(grade_bg, (100 + (i - 1) * grade_step, 0))
 
     grade_unlock_bg = grade_unlock_bg.resize((int(1000 * 0.5), int(130 * 0.5)))
     card.alpha_composite(grade_unlock_bg, (0, 750))

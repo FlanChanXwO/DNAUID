@@ -69,14 +69,7 @@ COLOR_PURPLE = (138, 43, 226)
 
 Color = Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]
 
-GRADE_0 = Image.open(TEXT_PATH / "number/0.png")
-GRADE_1 = Image.open(TEXT_PATH / "number/1.png")
-GRADE_2 = Image.open(TEXT_PATH / "number/2.png")
-GRADE_3 = Image.open(TEXT_PATH / "number/3.png")
-GRADE_4 = Image.open(TEXT_PATH / "number/4.png")
-GRADE_5 = Image.open(TEXT_PATH / "number/5.png")
-GRADE_6 = Image.open(TEXT_PATH / "number/6.png")
-grades = [GRADE_0, GRADE_1, GRADE_2, GRADE_3, GRADE_4, GRADE_5, GRADE_6]
+grades = [Image.open(TEXT_PATH / f"number/{i}.png") for i in range(11)]
 
 
 def get_ICON():
@@ -248,7 +241,9 @@ async def get_mod_img(mod_id: Union[str, int], pic_url: Optional[str] = None) ->
 
 
 def get_grade_img(grade_level: int) -> Image.Image:
-    return grades[grade_level]
+    # 命座等级会随版本增加，越界时夹到现有素材的上下限
+    idx = max(0, min(grade_level, len(grades) - 1))
+    return grades[idx]
 
 
 async def get_avatar_title_img(
