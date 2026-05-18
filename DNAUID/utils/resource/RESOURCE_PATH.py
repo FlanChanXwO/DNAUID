@@ -24,6 +24,7 @@ SKILL_PATH = RESOURCE_PATH / "skill"  # 技能
 ATTR_PATH = RESOURCE_PATH / "attr"  # 属性
 MOD_PATH = RESOURCE_PATH / "mod"  # mod
 WEAPON_ATTR_PATH = RESOURCE_PATH / "weapon_attr"  # 武器属性
+WEEKLY_ITEM_PATH = RESOURCE_PATH / "weekly_item"  # 周报资源图标
 ID2NAME_PATH = RESOURCE_PATH / "id2name.json"  # id2name.json
 # 别名
 ALIAS_PATH = RESOURCE_PATH / "alias"
@@ -54,6 +55,7 @@ def init_dir():
         SKILL_PATH,
         ATTR_PATH,
         MOD_PATH,
+        WEEKLY_ITEM_PATH,
         CUSTOM_PATH,
         CUSTOM_PAINT_PATH,
         ALIAS_PATH,

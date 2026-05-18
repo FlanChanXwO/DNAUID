@@ -36,6 +36,7 @@ from .api import (
     GET_POST_DETAIL_URL,
     GET_TASK_PROCESS_URL,
     GET_RSA_PUBLIC_KEY_URL,
+    ITEM_WEEKLY_REPORT_URL,
     get_local_proxy_url,
     get_need_proxy_func,
     get_no_need_proxy_func,
@@ -252,6 +253,16 @@ class DNAApi:
             rsa_public_key=rsa_pub,
         )
         return await self._dna_request(SHORT_NOTE_URL, "POST", headers)
+
+    async def get_item_weekly_report(self, token: str, dev_code: str, week_type: int = 1):
+        """获取周报（资源获取统计）
+
+        Args:
+            week_type: 1=本周, 2=上周
+        """
+        headers = await get_base_header(dev_code=dev_code, token=token)
+        data = {"weekType": week_type}
+        return await self._dna_request(ITEM_WEEKLY_REPORT_URL, "POST", headers, data=data)
 
     async def have_sign_in(self, token: str, dev_code: Optional[str] = None):
         headers = await get_base_header(dev_code=dev_code, token=token)

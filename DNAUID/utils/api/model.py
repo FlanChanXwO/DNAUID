@@ -75,6 +75,28 @@ class DraftInfo(BaseModel):
     draftMaxNum: int = Field(description="最大锻造数量")
 
 
+class DNAWeeklyReportItem(BaseModel):
+    icon: str = Field(description="资源图标 URL")
+    itemId: int = Field(description="资源 ID")
+    itemName: str = Field(description="资源名")
+    quality: int = Field(description="品质 1-5", default=1)
+    totalNum: str = Field(description="累计获取数量", default="0")
+
+
+class DNAWeeklyReportCategory(BaseModel):
+    categoryName: str = Field(description="分类名")
+    isBase: Optional[bool] = Field(description="是否基础资源", default=False)
+    items: List[DNAWeeklyReportItem] = Field(description="资源列表")
+    type: int = Field(description="分类类型")
+
+
+class DNAItemWeeklyReportRes(BaseModel):
+    categories: List[DNAWeeklyReportCategory] = Field(description="分类资源")
+    startDate: str = Field(description="周开始日期 YYYYMMDD")
+    endDate: str = Field(description="周结束日期 YYYYMMDD")
+    weekType: int = Field(description="1=本周 2=上周")
+
+
 class DNARoleShortNoteRes(BaseModel):
     rougeLikeRewardCount: int = Field(description="迷津进度")
     rougeLikeRewardTotal: int = Field(description="迷津总数")

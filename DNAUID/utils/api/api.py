@@ -22,6 +22,9 @@ REFRESH_TOKEN_URL = f"{MAIN_URL}/user/refreshToken"
 # mr
 SHORT_NOTE_URL = f"{MAIN_URL}/role/getShortNoteInfo"
 
+# 周报
+ITEM_WEEKLY_REPORT_URL = f"{MAIN_URL}/role/getItemWeeklyReport"
+
 
 # game sign
 SIGN_CALENDAR_URL = f"{MAIN_URL}/encourage/signin/show"

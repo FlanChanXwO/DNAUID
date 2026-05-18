@@ -208,6 +208,14 @@
         "need_ck": false,
         "need_sk": false,
         "need_admin": false
+      },
+      {
+        "name": "周报",
+        "desc": "查询本周/上周资源获取统计",
+        "eg": "周报 / 上周周报",
+        "need_ck": true,
+        "need_sk": false,
+        "need_admin": false
       }
     ]
   },
